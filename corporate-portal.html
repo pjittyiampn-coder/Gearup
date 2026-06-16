@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GEARUP — พอร์ทัลองค์กรพันธมิตร</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:    #2f5233;
+      --primary-dk: #1a2421;
+      --secondary:  #8b7355;
+      --accent:     #d4a574;
+      --bg:         #f8f6f3;
+      --white:      #ffffff;
+      --border:     #e2ddd8;
+      --text:       #1a2421;
+      --muted:      #6b7c72;
+      --sidebar-w:  260px;
+      --header-h:   64px;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Crimson Text', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════
+       NOTIFICATION TOAST
+    ═══════════════════════════════ */
+    #cpNotif {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
+      background: var(--primary-dk); color: #fff;
+      padding: 0.85rem 1.3rem; border-radius: 10px;
+      font-size: 0.92rem; max-width: 320px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+      transform: translateX(200%); transition: transform 0.3s;
+      pointer-events: none;
+    }
+    #cpNotif.show  { transform: translateX(0); }
+    #cpNotif.error { background: #c0392b; }
+    #cpNotif.success { background: #2e7d32; }
+
+    /* ═══════════════════════════════
+       LOGIN SCREEN
+    ═══════════════════════════════ */
+    #loginScreen {
+      display: none;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #1a2421 0%, #2f5233 60%, #3d6b42 100%);
+      padding: 2rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #loginScreen::before {
+      content: '';
+      position: absolute; top: -120px; right: -120px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(212,165,116,0.12) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none;
+    }
+    #loginScreen::after {
+      content: '';
+      position: absolute; bottom: -80px; left: -80px;
+      width: 340px; height: 340px;
+      background: radial-gradient(circle, rgba(47,82,51,0.3) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none;
+    }
+
+    .cp-login-card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 2.8rem 2.4rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+      position: relative; z-index: 1;
+    }
+
+    .cp-login-logo {
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    .cp-login-logo img {
+      height: 52px;
+      object-fit: contain;
+    }
+    .cp-login-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: 0.04em;
+    }
+
+    .cp-login-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text);
+      text-align: center;
+      margin: 1rem 0 0.3rem;
+    }
+    .cp-login-subtitle {
+      font-size: 0.9rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .cp-field {
+      margin-bottom: 1.1rem;
+    }
+    .cp-field label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.35rem;
+      color: var(--text);
+    }
+    .cp-field input {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: 'Crimson Text', serif;
+      font-size: 1rem;
+      color: var(--text);
+      background: #fcfbfa;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .cp-field input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(47,82,51,0.12);
+    }
+
+    .cp-login-btn {
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      border-radius: 10px;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background 0.2s, transform 0.15s;
+      margin-top: 0.25rem;
+    }
+    .cp-login-btn:hover { background: #1a2421; }
+    .cp-login-btn:active { transform: translateY(1px); }
+    .cp-login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .cp-login-error {
+      display: none;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.88rem;
+      margin-bottom: 1rem;
+    }
+
+    .cp-login-help {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .cp-login-help a { color: var(--primary); text-decoration: none; font-weight: 600; }
+
+    /* ═══════════════════════════════
+       DASHBOARD SCREEN
+    ═══════════════════════════════ */
+    #dashboardScreen {
+      display: none;
+      min-height: 100vh;
+    }
+
+    /* ─── Sidebar ─── */
+    .cp-sidebar {
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      width: var(--sidebar-w);
+      background: var(--primary-dk);
+      color: rgba(255,255,255,0.85);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .cp-sidebar-top {
+      padding: 1.75rem 1.5rem 1.25rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .cp-sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      margin-bottom: 1.1rem;
+    }
+    .cp-sidebar-brand img {
+      height: 36px;
+      object-fit: contain;
+      filter: brightness(0) invert(1) opacity(0.9);
+    }
+    .cp-sidebar-brand-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      line-height: 1.2;
+    }
+    .cp-sidebar-brand-sub {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.45);
+      font-weight: 400;
+    }
+
+    .cp-sidebar-org {
+      background: rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem;
+    }
+    .cp-sidebar-org-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.3rem;
+      word-break: break-word;
+    }
+    .cp-pkg-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--primary-dk);
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.15rem 0.6rem;
+      border-radius: 20px;
+      letter-spacing: 0.04em;
+    }
+
+    .cp-nav {
+      flex: 1;
+      padding: 1.2rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .cp-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.7rem 0.9rem;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.65);
+      font-family: 'Crimson Text', serif;
+      font-size: 0.97rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s;
+      text-align: left;
+      width: 100%;
+    }
+    .cp-nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .cp-nav-item.active {
+      background: rgba(212,165,116,0.15);
+      color: var(--accent);
+      border-left: 3px solid var(--accent);
+      padding-left: calc(0.9rem - 3px);
+    }
+    .cp-nav-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+    .cp-sidebar-footer {
+      padding: 1.1rem 1.2rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .cp-logout-btn {
+      width: 100%;
+      padding: 0.6rem 0.9rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      color: rgba(255,255,255,0.6);
+      font-family: 'Crimson Text', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s;
+    }
+    .cp-logout-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+    /* ─── Main content ─── */
+    .cp-main {
+      margin-left: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cp-header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 1.1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 8px rgba(47,82,51,0.06);
+    }
+
+    .cp-header-welcome {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .cp-header-welcome span { color: var(--primary); }
+
+    .cp-header-date {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .cp-content {
+      flex: 1;
+      padding: 1.75rem 2rem;
+      max-width: 1100px;
+      width: 100%;
+    }
+
+    /* ─── Stats bar ─── */
+    #cpStats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+
+    /* ─── Section titles ─── */
+    .cp-sec-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .cp-sec-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ─── Tab panes ─── */
+    .cp-tab-pane { display: none; }
+
+    /* ═══════════════════════════════
+       MOBILE RESPONSIVE
+    ═══════════════════════════════ */
+    @media (max-width: 900px) {
+      .cp-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s;
+      }
+      .cp-sidebar.open { transform: translateX(0); }
+      .cp-main { margin-left: 0; }
+      #cpStats { grid-template-columns: 1fr 1fr; }
+
+      .cp-mobile-bar {
+        display: flex !important;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.7rem 1rem;
+        background: var(--primary-dk);
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 110;
+      }
+      .cp-mobile-bar button {
+        background: none; border: none; color: white; font-size: 1.4rem; cursor: pointer;
+      }
+      .cp-mobile-bar span {
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+    }
+    @media (min-width: 901px) {
+      .cp-mobile-bar { display: none !important; }
+      .cp-sidebar-overlay { display: none !important; }
+    }
+    @media (max-width: 540px) {
+      .cp-content { padding: 1.25rem 1rem; }
+      #cpStats { grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+      .cp-header { padding: 0.9rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cpNotif"></div>
+
+<!-- ═══════════════════════════════════════
+     MOBILE TOP BAR (hidden on desktop)
+═══════════════════════════════════════ -->
+<div class="cp-mobile-bar" id="cpMobileBar" style="display:none;">
+  <button onclick="toggleCpSidebar()">&#9776;</button>
+  <span>GEARUP พอร์ทัลองค์กร</span>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SIDEBAR OVERLAY (mobile)
+═══════════════════════════════════════ -->
+<div id="cpSidebarOverlay"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;"
+     onclick="toggleCpSidebar()"></div>
+
+<!-- ═══════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="cp-login-card">
+    <div class="cp-login-logo">
+      <img src="assets/logo-gearup.png" alt="GEARUP"
+           onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<div class=\'cp-login-logo-text\'>GEARUP</div>')">
+    </div>
+
+    <h1 class="cp-login-title">พอร์ทัลองค์กรพันธมิตร</h1>
+    <p class="cp-login-subtitle">เข้าสู่ระบบเพื่อดูกิจกรรมและรายงาน CSR ของคุณ</p>
+
+    <div class="cp-login-error" id="cpLoginError"></div>
+
+    <div class="cp-field">
+      <label for="cpEmail">อีเมลองค์กร</label>
+      <input type="email" id="cpEmail" placeholder="contact@company.com"
+             onkeydown="if(event.key==='Enter')handleLogin()">
+    </div>
+
+    <div class="cp-field">
+      <label for="cpOrgName">ชื่อองค์กร</label>
+      <input type="text" id="cpOrgName" placeholder="บริษัท / หน่วยงานของคุณ"
+             onkeydown="if(event.key==='Enter')handleLogin()">
+    </div>
+
+    <button class="cp-login-btn" id="cpLoginBtn" onclick="handleLogin()">
+      เข้าสู่ระบบ
+    </button>
+
+    <div class="cp-login-help">
+      ต้องการความช่วยเหลือ? ติดต่อ <a href="mailto:info@gearup.com">info@gearup.com</a>
+      หรือโทร <strong>064-335-2325</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DASHBOARD SCREEN
+═══════════════════════════════════════ -->
+<div id="dashboardScreen">
+
+  <!-- Sidebar -->
+  <aside class="cp-sidebar" id="cpSidebar">
+    <div class="cp-sidebar-top">
+      <div class="cp-sidebar-brand">
+        <img src="assets/logo-gearup.png" alt="GEARUP"
+             onerror="this.style.display='none'">
+        <div>
+          <div class="cp-sidebar-brand-text">GEARUP</div>
+          <div class="cp-sidebar-brand-sub">พอร์ทัลองค์กร</div>
+        </div>
+      </div>
+
+      <div class="cp-sidebar-org">
+        <div class="cp-sidebar-org-name" id="cpSidebarOrgName">—</div>
+        <span class="cp-pkg-badge" id="cpSidebarPkg">—</span>
+      </div>
+    </div>
+
+    <nav class="cp-nav">
+      <button class="cp-nav-item active" data-tab="overview" onclick="switchTab('overview')">
+        <span class="cp-nav-icon">&#128202;</span> ภาพรวม
+      </button>
+      <button class="cp-nav-item" data-tab="events" onclick="switchTab('events')">
+        <span class="cp-nav-icon">&#128197;</span> กิจกรรม
+      </button>
+      <button class="cp-nav-item" data-tab="photos" onclick="switchTab('photos')">
+        <span class="cp-nav-icon">&#128248;</span> ภาพถ่าย
+      </button>
+      <button class="cp-nav-item" data-tab="package" onclick="switchTab('package')">
+        <span class="cp-nav-icon">&#127881;</span> ข้อมูลแพ็คเกจ
+      </button>
+    </nav>
+
+    <div class="cp-sidebar-footer">
+      <button class="cp-logout-btn" onclick="logout()">
+        &#x2715; ออกจากระบบ
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="cp-main">
+    <header class="cp-header">
+      <div>
+        <div class="cp-header-welcome">สวัสดี, <span id="cpHeaderOrg">—</span></div>
+      </div>
+      <div class="cp-header-date" id="cpHeaderDate"></div>
+    </header>
+
+    <div class="cp-content">
+
+      <!-- Stats bar -->
+      <div id="cpStats">
+        <div style="background:white;border-radius:14px;padding:1.25rem;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+          <div style="color:#aaa;font-size:0.8rem;">กำลังโหลด...</div>
+        </div>
+      </div>
+
+      <!-- Overview tab -->
+      <div class="cp-tab-pane" data-tab-pane="overview" style="display:block;">
+        <div class="cp-sec-title">&#128197; กิจกรรมที่กำลังจะมา</div>
+        <div id="cpOverviewContent">
+          <div style="text-align:center;padding:3rem;color:#888;">กำลังโหลด...</div>
+        </div>
+      </div>
+
+      <!-- Events tab -->
+      <div class="cp-tab-pane" data-tab-pane="events">
+        <div class="cp-sec-title">&#128203; ประวัติกิจกรรมทั้งหมด</div>
+        <div id="cpEventsContent">
+          <div style="text-align:center;padding:3rem;color:#888;">กำลังโหลด...</div>
+        </div>
+      </div>
+
+      <!-- Photos tab -->
+      <div class="cp-tab-pane" data-tab-pane="photos">
+        <div class="cp-sec-title">&#128247; ภาพถ่ายกิจกรรม</div>
+        <div id="cpPhotosContent">
+          <div style="text-align:center;padding:3rem;color:#888;">กำลังโหลด...</div>
+        </div>
+      </div>
+
+      <!-- Package tab -->
+      <div class="cp-tab-pane" data-tab-pane="package">
+        <div class="cp-sec-title">&#127881; ข้อมูลแพ็คเกจ CSR</div>
+        <div id="cpPackageContent">
+          <div style="text-align:center;padding:3rem;color:#888;">กำลังโหลด...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="js/corporate-portal-script.js"></script>
+</body>
+</html>

@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GEARUP สำหรับองค์กร — บริจาคอุปกรณ์ไอที เพื่อรายงาน ESG ที่สมบูรณ์แบบ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Crimson+Text:wght@400;600;700&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="js/thailand-address-data.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #2f5233;
+      --primary-light: #3d6b42;
+      --primary-dark: #1e3622;
+      --secondary: #8b7355;
+      --accent: #d4a574;
+      --bg: #f8f6f3;
+      --dark: #1a2421;
+      --white: #ffffff;
+      --border: #e2ddd8;
+      --text: #2d2d2d;
+      --text-muted: #6b7280;
+      --glass: rgba(255, 255, 255, 0.92);
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: 'Crimson Text', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Standard Layout */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    section { padding: 6rem 0; position: relative; }
+
+    /* Typography - Scaled to match main site */
+    h1, h2, h3, h4 { font-family: 'Playfair Display', serif; color: var(--dark); line-height: 1.3; }
+    h1 { font-size: 3.5rem; }
+    h2 { font-size: 2.5rem; }
+    h3 { font-size: 1.8rem; }
+    h4 { font-size: 1.4rem; }
+    p { font-size: 1.1rem; }
+
+    .section-label { 
+      font-size: 0.9rem; color: var(--secondary); font-weight: 700; letter-spacing: 0.15em; 
+      text-transform: uppercase; margin-bottom: 1rem; display: block; text-align: center;
+    }
+    .section-header { text-align: center; max-width: 750px; margin: 0 auto 4rem; }
+    .section-title { margin-bottom: 1.2rem; }
+    .section-desc { font-size: 1.15rem; color: var(--text-muted); }
+
+    /* Decorative Elements */
+    .bg-leaf { position: absolute; opacity: 0.05; z-index: -1; pointer-events: none; }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: rgba(26, 36, 33, 0.96); backdrop-filter: blur(10px);
+      z-index: 1000; padding: 0 2rem; height: 75px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(212, 165, 116, 0.2);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 0.8rem; text-decoration: none; }
+    .nav-logo img { height: 42px; }
+    .nav-logo-text { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; color: var(--accent); }
+    .nav-logo-text span { display: block; font-size: 0.65rem; color: rgba(255,255,255,0.5); letter-spacing: 0.1em; text-transform: uppercase; margin-top: -2px; }
+    
+    .nav-links { display: flex; align-items: center; gap: 2.5rem; list-style: none; }
+    .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.95rem; font-weight: 600; transition: 0.2s; }
+    .nav-links a:hover { color: var(--accent); }
+    .btn-nav { background: var(--accent); color: var(--dark) !important; padding: 0.6rem 1.4rem; border-radius: 10px; font-weight: 700; }
+
+    /* ===== HERO ===== */
+    .hero {
+      min-height: 100vh; padding: 10rem 0 6rem;
+      background: linear-gradient(135deg, rgba(26, 36, 33, 0.85) 0%, rgba(26, 36, 33, 0.7) 100%),
+                  url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1600&fit=crop') center/cover;
+      display: flex; align-items: center;
+      position: relative;
+    }
+    .hero-inner { display: grid; grid-template-columns: 1fr 420px; gap: 4rem; align-items: center; position: relative; z-index: 1; }
+    .hero-content h1 { color: white; margin-bottom: 1.5rem; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+    .hero-content h1 .accent { color: var(--accent); }
+    .hero-content p { font-size: 1.3rem; color: rgba(255,255,255,0.9); margin-bottom: 2.5rem; font-family: 'Cormorant Garamond', serif; font-weight: 500; }
+    .hero-cta { display: flex; gap: 1.2rem; }
+    
+    .btn { padding: 0.9rem 2.2rem; border-radius: 12px; font-size: 1.05rem; font-weight: 700; text-decoration: none; transition: 0.3s; display: inline-block; cursor: pointer; border: none; }
+    .btn-pri { background: var(--accent); color: var(--dark); box-shadow: 0 8px 25px rgba(212, 165, 116, 0.3); }
+    .btn-sec { border: 2px solid rgba(255, 255, 255, 0.4); color: white; background: transparent; }
+    .btn:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+
+    /* Dashboard UI */
+    .hero-dash { background: var(--glass); border-radius: 30px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px); }
+    .dash-header { background: linear-gradient(135deg, var(--primary), #3d6b42); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+    .dash-header-title { color: #fff; font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.02em; }
+    .dash-live { display: flex; align-items: center; gap: 0.5rem; }
+    .dash-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #6ee07f; box-shadow: 0 0 0 3px rgba(110,224,127,0.3); animation: pulse-dot 2s infinite; }
+    .dash-live-label { font-size: 0.72rem; color: rgba(255,255,255,0.8); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+    @keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 3px rgba(110,224,127,0.3)} 50%{box-shadow:0 0 0 6px rgba(110,224,127,0.1)} }
+    .dash-body { padding: 1.75rem 2rem 2rem; }
+    .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .dash-item { padding: 1rem 1.25rem; border-radius: 14px; transition: background 0.2s; }
+    .dash-item:hover { background: rgba(47,82,51,0.06); }
+    .dash-item-icon { font-size: 1.4rem; margin-bottom: 0.5rem; display: block; }
+    .dash-item .num { font-size: 2.4rem; font-weight: 800; color: var(--dark); display: block; line-height: 1; margin-bottom: 0.35rem; }
+    .dash-item .lbl { font-size: 0.75rem; font-weight: 700; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.06em; }
+    .dash-divider { height: 1px; background: linear-gradient(to right, transparent, rgba(139,115,85,0.2), transparent); margin: 0.25rem 1.25rem; }
+    .dash-accent-bar { width: 28px; height: 3px; border-radius: 2px; background: var(--accent); margin-bottom: 0.6rem; }
+
+    /* ===== WHY GEARUP ===== */
+    #why { background: var(--white); }
+    .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 1rem; }
+    .why-card { 
+      background: var(--bg); padding: 3rem 2rem; border-radius: 25px; transition: 0.3s; 
+      text-align: center; border: 1px solid transparent;
+    }
+    .why-card:hover { transform: translateY(-10px); background: white; border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+    .why-icon { width: 70px; height: 70px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.03); }
+    .why-card h3 { font-size: 1.4rem; margin-bottom: 1rem; }
+    .why-card p { font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; }
+
+    /* ===== SCHOOL POSTS (MATCH MAIN SITE) ===== */
+    #schools { background: var(--bg); }
+    .schools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 2rem; }
+
+    .request-post-card {
+      background: var(--white); border-radius: 15px; overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08); transition: 0.3s;
+      border: 1px solid rgba(47,82,51,0.08); display: flex; flex-direction: column;
+    }
+    .request-post-card:hover { transform: translateY(-8px); box-shadow: 0 15px 45px rgba(0,0,0,0.12); }
+    .post-image { position: relative; height: 200px; overflow: hidden; background: #f5f3ef; }
+    .post-image img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
+    .request-post-card:hover .post-image img { transform: scale(1.05); }
+    .post-badge {
+      position: absolute; top: 1rem; right: 1rem;
+      background: var(--primary); color: var(--white);
+      padding: 0.35rem 0.9rem; border-radius: 20px; font-size: 0.82rem; font-weight: 700;
+    }
+    .post-content { padding: 1.25rem 1.4rem 1.4rem; display: flex; flex-direction: column; flex: 1; gap: 0; }
+    .post-title { font-size: 1.15rem; font-weight: 700; color: #1a2421; line-height: 1.35; margin-bottom: 0.3rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .post-contact { font-size: 0.82rem; color: #8b7355; margin-bottom: 0.85rem; }
+    .post-overview-wrap { position: relative; margin-bottom: 0.85rem; }
+    .post-overview-text { font-size: 0.9rem; line-height: 1.6; color: #5a5a5a; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; transition: all 0.3s; }
+    .post-overview-text.expanded { display: block; -webkit-line-clamp: unset; }
+    .post-read-more { display: none; background: none; border: none; color: #2f5233; font-size: 0.82rem; cursor: pointer; padding: 2px 0; text-decoration: underline; }
+    .post-divider { border: none; border-top: 1px solid #ede8e0; margin: 0.75rem 0; }
+    .post-device-table { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.85rem; }
+    .post-device-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.87rem; padding-bottom: 0.3rem; border-bottom: 1px dotted #e0d5c5; color: #3a3a3a; }
+    .post-device-row:last-child { border-bottom: none; }
+    .post-device-type { color: #2f5233; font-weight: 600; }
+    .post-device-qty { color: #8b7355; font-weight: 600; font-size: 0.85rem; }
+    .post-device-qty-partial { color: #8b7355; }
+    .post-device-qty-done { color: #2f5233; }
+    .post-progress-section { margin-bottom: 1rem; }
+    .post-progress-bar-wrap { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem; }
+    .post-progress-percent { font-size: 0.88rem; font-weight: 700; color: #2f5233; min-width: 36px; text-align: right; }
+    .progress-bar-track { flex: 1; height: 8px; background: #e8e3dc; border-radius: 8px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #2f5233, #4a8c50); border-radius: 8px; transition: width 0.6s ease; min-width: 4px; }
+    .progress-bar-fill.complete { background: #d4a574; }
+    .post-progress-detail { font-size: 0.8rem; color: #8b7355; font-family: 'Crimson Text', serif; }
+    .btn-donate-direct {
+      width: 100%; padding: 0.85rem; background: #2f5233; color: #fff; border: none;
+      border-radius: 10px; font-family: 'Crimson Text', serif; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; margin-top: auto; letter-spacing: 0.01em;
+    }
+    .btn-donate-direct:hover { background: #1e3a22; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(47,82,51,0.25); }
+    .btn-donate-direct.selected { background: var(--primary-dark); }
+
+    /* ===== PACKAGES (BALANCED) ===== */
+    #packages { background: white; }
+    .pkg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 1rem; padding-top: 20px; align-items: start; }
+    .pkg-card {
+      background: var(--bg); padding: 2.8rem 2.2rem 2.5rem; border-radius: 35px;
+      display: flex; flex-direction: column; border: 2px solid transparent; transition: 0.3s;
+      position: relative;
+    }
+    .pkg-card.featured { background: white; border-color: var(--accent); box-shadow: 0 20px 50px rgba(47, 82, 51, 0.1); }
+    .pkg-recommended {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: var(--dark); padding: 0.35rem 1.4rem;
+      border-radius: 20px; font-size: 0.78rem; font-weight: 800; white-space: nowrap; z-index: 2;
+      letter-spacing: 0.5px;
+    }
+    .template-download-box { background: linear-gradient(135deg, rgba(47,82,51,0.04), rgba(212,165,116,0.06)); border: 1.5px dashed var(--accent); border-radius: 15px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem; }
+    .template-download-box p { margin: 0; font-size: 0.95rem; color: var(--text-muted); }
+    .btn-download-template { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-family: 'Crimson Text', serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+    .btn-download-template:hover { background: var(--dark); }
+    .file-upload-area { border: 1.5px solid var(--border); border-radius: 15px; padding: 1.2rem 1.4rem; background: var(--bg); display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: 0.2s; }
+    .file-upload-area:hover { border-color: var(--accent); background: white; }
+    .file-upload-area input[type=file] { flex: 1; border: none; background: transparent; font-family: 'Crimson Text', serif; font-size: 1rem; cursor: pointer; }
+    .file-upload-hint { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.4rem; }
+    .spec-notice-box { background: #fffbf0; border: 1.5px solid #e8a000; border-radius: 12px; padding: 1.2rem 1.5rem; margin-bottom: 1.5rem; }
+    .spec-notice-header { font-weight: 800; color: #a05000; font-size: 0.95rem; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+    .spec-notice-sub { font-size: 0.82rem; color: #8b7355; margin-bottom: 0.85rem; }
+    .spec-rows { display: flex; flex-direction: column; gap: 0; }
+    .spec-row { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; align-items: baseline; padding: 0.6rem 0; border-bottom: 1px dashed #f0d898; }
+    .spec-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .spec-device-name { font-weight: 800; color: var(--primary); font-size: 0.92rem; min-width: 110px; }
+    .spec-chip { display: inline-flex; align-items: center; gap: 0.3rem; background: white; border: 1px solid #e8d9b8; border-radius: 6px; padding: 0.15rem 0.55rem; font-size: 0.82rem; color: #3a3a3a; white-space: nowrap; }
+    .spec-chip strong { color: #1a2421; font-weight: 700; }
+    
+    .pkg-name { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.3rem; }
+    .pkg-sub {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: rgba(47,82,51,0.08); color: var(--primary);
+      border: 1px solid rgba(47,82,51,0.18);
+      font-weight: 700; font-size: 0.88rem;
+      padding: 0.25rem 0.75rem; border-radius: 20px;
+      margin-bottom: 1.4rem;
+    }
+    .pkg-card.featured .pkg-sub {
+      background: rgba(212,165,116,0.15); color: #7a5500;
+      border-color: rgba(212,165,116,0.4);
+    }
+
+    /* Features section */
+    .pkg-section-label {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.8rem;
+    }
+    .pkg-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .pkg-list { list-style: none; text-align: left; margin-bottom: 1.6rem; }
+    .pkg-list li { margin-bottom: 0.75rem; font-size: 0.95rem; font-weight: 600; display: flex; gap: 0.7rem; align-items: flex-start; }
+    .pkg-list li::before { content: '✓'; color: var(--accent); font-weight: 900; flex-shrink: 0; margin-top: 1px; }
+    .pkg-list li.off { opacity: 0.38; color: var(--text-muted); }
+    .pkg-list li.off::before { content: '✕'; color: #bbb; }
+
+    /* Cost breakdown section */
+    .pkg-cost-section {
+      border: 1.5px solid rgba(212,165,116,0.35);
+      border-radius: 14px; overflow: hidden;
+      margin-bottom: 1.6rem;
+    }
+    .pkg-card.featured .pkg-cost-section {
+      border-color: rgba(212,165,116,0.6);
+    }
+    .pkg-cost-header {
+      background: rgba(47,82,51,0.06);
+      padding: 0.5rem 1rem;
+      font-size: 0.65rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(212,165,116,0.25);
+    }
+    .pkg-cost-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px dashed rgba(212,165,116,0.2);
+    }
+    .pkg-cost-row:last-child { border-bottom: none; }
+    .pkg-cost-row.base-row { background: rgba(47,82,51,0.03); }
+    .pkg-cost-label { font-size: 0.82rem; color: var(--text-muted); }
+    .pkg-cost-val { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+    .pkg-cost-amount {
+      font-size: 1.15rem; font-weight: 800; color: var(--primary); line-height: 1;
+    }
+    .pkg-cost-row.base-row .pkg-cost-amount { color: #555; font-size: 1rem; }
+    .pkg-card.featured .pkg-cost-row:not(.base-row) .pkg-cost-amount { color: var(--accent); }
+    .pkg-cost-unit { font-size: 0.68rem; color: var(--text-muted); }
+
+    .btn-pkg { background: var(--primary); color: white; padding: 1.1rem; border-radius: 15px; font-weight: 700; text-decoration: none; font-size: 1.1rem; transition: 0.2s; text-align: center; margin-top: auto; }
+    .pkg-card.featured .btn-pkg { background: var(--accent); color: var(--dark); }
+    .btn-pkg:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+
+    /* ===== ADD-ON INFO STRIP ===== */
+    .addon-strip-wrap {
+      background: var(--bg); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 2.5rem 0;
+    }
+    .addon-strip-inner { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    .addon-strip-title {
+      text-align: center; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.18em; color: var(--secondary); margin-bottom: 1.4rem;
+    }
+    .addon-strip-title span { color: var(--primary); }
+    .addon-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    .addon-card {
+      display: flex; align-items: flex-start; gap: 1rem;
+      border: 1.5px solid rgba(47,82,51,0.18); border-radius: 16px;
+      background: var(--white); padding: 1.2rem 1.5rem;
+    }
+    .addon-icon {
+      width: 44px; height: 44px; border-radius: 12px; background: rgba(47,82,51,0.07);
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;
+    }
+    .addon-body {}
+    .addon-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 0.25rem; }
+    .addon-price { font-size: 1.1rem; font-weight: 800; color: var(--primary); line-height: 1.2; }
+    .addon-price-sub { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.15rem; line-height: 1.4; }
+    .addon-strip-note {
+      text-align: center; margin-top: 1.2rem;
+      font-size: 0.88rem; color: var(--text-muted); font-style: italic;
+    }
+    .addon-strip-note a { color: var(--primary); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+    @media (max-width: 640px) { .addon-cards { grid-template-columns: 1fr; } }
+
+    /* ===== PROCESS (BALANCED) ===== */
+    #process { background: var(--bg); }
+    .proc-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; margin-top: 1rem; position: relative; }
+    .proc-grid::after { content: ''; position: absolute; top: 60px; left: 10%; right: 10%; height: 2px; background: rgba(212,165,116,0.2); z-index: 1; }
+    
+    .proc-step { text-align: center; position: relative; z-index: 2; }
+    .proc-graphic { 
+      width: 120px; height: 120px; background: white; border-radius: 30px; 
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;
+      font-size: 3rem; box-shadow: 0 10px 25px rgba(0,0,0,0.04); border: 1.5px solid var(--border);
+      transition: 0.3s;
+    }
+    .proc-step:hover .proc-graphic { transform: translateY(-10px); border-color: var(--accent); background: var(--accent); }
+    .proc-num { position: absolute; top: -8px; right: -8px; width: 35px; height: 35px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; border: 3px solid var(--bg); }
+    
+    .proc-step h4 { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.8rem; }
+    .proc-step p { font-size: 0.95rem; color: var(--text-muted); }
+
+    /* ===== REVIEWS ===== */
+    #reviews { background: white; }
+    .rev-box { max-width: 900px; margin: 0 auto; background: var(--bg); border-radius: 40px; padding: 4rem 3rem; text-align: center; position: relative; }
+    .rev-text { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-style: italic; color: var(--dark); line-height: 1.4; margin-bottom: 3rem; position: relative; z-index: 2; }
+    .rev-user { display: flex; align-items: center; justify-content: center; gap: 1.5rem; }
+    .rev-avatar { width: 65px; height: 65px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; }
+    .rev-info { text-align: left; }
+    .rev-name { font-size: 1.3rem; font-weight: 700; }
+    .rev-job { font-size: 0.85rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    /* ===== CONTACT FORM ===== */
+    #contact { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); }
+    .contact-card { max-width: 1200px; margin: 0 auto; background: white; border-radius: 40px; padding: 0; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.3); }
+    .contact-head { padding: 3.5rem 4rem 1.5rem; text-align: center; }
+    .contact-head .section-header { margin-bottom: 1.5rem; }
+    .contact-head .section-title { color: var(--dark); }
+    .contact-head .section-desc { color: var(--text-muted); margin-bottom: 0; }
+
+    /* Payment flow steps */
+    .pay-steps { display: flex; align-items: flex-start; justify-content: center; padding: 0 3rem 2.5rem; gap: 0; }
+    .pay-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.2rem; position: relative; }
+    .pay-step::after { content: '→'; position: absolute; right: -6px; top: 14px; color: rgba(47,82,51,0.25); font-size: 0.85rem; font-weight: 700; }
+    .pay-step:last-child::after { display: none; }
+    .pay-step-icon { width: 64px; height: 64px; border-radius: 18px; background: rgba(47,82,51,0.07); display: flex; align-items: center; justify-content: center; font-size: 2rem; border: 1.5px solid rgba(47,82,51,0.1); }
+    .pay-step-text { font-size: 0.68rem; color: var(--text-muted); font-weight: 700; text-align: center; max-width: 72px; line-height: 1.3; }
+
+    /* Split layout */
+    .contact-split { display: grid; grid-template-columns: 1.15fr 0.85fr; align-items: stretch; }
+    .contact-self { padding: 2.5rem 4rem 3.5rem; border-top: 1px solid var(--border); }
+    .contact-admin { background: linear-gradient(160deg, #2a4a2e 0%, #1a3020 100%); padding: 2.5rem 3rem 3.5rem; border-top: 1px solid rgba(255,255,255,0.08); border-left: 1px solid rgba(255,255,255,0.06); }
+    .path-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.28rem 0.85rem; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.7rem; }
+    .self-badge { background: rgba(47,82,51,0.1); color: var(--primary); }
+    .admin-badge { background: rgba(212,165,116,0.18); color: var(--accent); }
+    .path-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.4rem; }
+    .contact-self .path-title { color: var(--dark); }
+    .contact-admin .path-title { color: white; }
+    .path-sub { font-size: 0.88rem; margin-bottom: 2rem; line-height: 1.5; }
+    .contact-self .path-sub { color: var(--text-muted); }
+    .contact-admin .path-sub { color: rgba(255,255,255,0.6); }
+
+    .form-label { font-size: 0.95rem; font-weight: 800; color: var(--dark); margin-bottom: 0.8rem; display: block; text-transform: uppercase; }
+    .form-input { width: 100%; padding: 1.1rem 1.4rem; border: 1.5px solid var(--border); border-radius: 15px; font-family: inherit; font-size: 1.1rem; transition: 0.2s; background: var(--bg); }
+    .form-input:focus { outline: none; border-color: var(--accent); background: white; box-shadow: 0 0 0 5px rgba(212,165,116,0.1); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .btn-submit { background: var(--primary); color: white; border: none; padding: 1.3rem; border-radius: 15px; font-size: 1.25rem; font-weight: 800; width: 100%; cursor: pointer; transition: 0.3s; margin-top: 1rem; }
+    .btn-submit:hover { background: var(--dark); transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+
+    /* School mode toggle */
+    .school-mode-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.1rem; }
+    .school-mode-btn { flex: 1; padding: 0.62rem 0.4rem; border: 1.5px solid var(--border); border-radius: 10px; background: white; font-family: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.2s; color: var(--text-muted); text-align: center; }
+    .school-mode-btn.active { border-color: var(--primary); background: rgba(47,82,51,0.06); color: var(--primary); }
+    .school-mode-btn:hover:not(.active) { border-color: var(--accent); color: var(--dark); }
+
+    /* Multi-school table */
+    .school-multi-wrap { overflow-x: auto; margin-bottom: 0.6rem; }
+    .school-multi-table { width: 100%; border-collapse: collapse; min-width: 280px; }
+    .school-multi-table th { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; }
+    .school-multi-table td { padding: 0.3rem 0.35rem; }
+    .school-multi-table select, .school-multi-table input[type=number] { width: 100%; padding: 0.5rem 0.65rem; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.88rem; background: var(--bg); }
+    .school-multi-table select:focus, .school-multi-table input:focus { outline: none; border-color: var(--accent); }
+    .btn-add-school { display: flex; align-items: center; justify-content: center; gap: 0.4rem; width: 100%; padding: 0.55rem; border: 1.5px dashed rgba(212,165,116,0.5); background: none; border-radius: 9px; font-family: inherit; font-size: 0.85rem; font-weight: 700; color: var(--primary); cursor: pointer; transition: 0.2s; margin-bottom: 1.2rem; }
+    .btn-add-school:hover { background: rgba(212,165,116,0.06); border-color: var(--accent); }
+    .btn-rm-school { background: none; border: none; color: #c0392b; cursor: pointer; font-size: 1rem; padding: 0.2rem 0.4rem; border-radius: 6px; }
+    .btn-rm-school:hover { background: rgba(192,57,43,0.08); }
+
+    /* Admin path content */
+    .admin-channel-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.8rem; }
+    .admin-channel { display: flex; align-items: center; gap: 0.9rem; padding: 0.9rem 1.1rem; border-radius: 14px; background: rgba(255,255,255,0.07); text-decoration: none; transition: 0.2s; }
+    .admin-channel:hover { background: rgba(255,255,255,0.13); }
+    .channel-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0; }
+    .channel-line .channel-icon { background: #06C755; }
+    .channel-email .channel-icon { background: rgba(212,165,116,0.3); }
+    .channel-lbl { font-size: 0.67rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .channel-val { font-size: 0.95rem; color: white; font-weight: 700; }
+    .admin-section-lbl { font-size: 0.67rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.85rem; }
+    .admin-benefits { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.8rem; }
+    .admin-benefits li { display: flex; align-items: flex-start; gap: 0.65rem; font-size: 0.9rem; color: rgba(255,255,255,0.8); font-weight: 600; line-height: 1.4; }
+    .admin-benefits li::before { content: '✓'; width: 20px; height: 20px; min-width: 20px; background: rgba(212,165,116,0.18); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 900; margin-top: 1px; }
+    .admin-status-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.8rem; }
+    .admin-status-item { display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: rgba(255,255,255,0.7); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .admin-divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 1.5rem 0; }
+    .admin-note { background: rgba(212,165,116,0.08); border: 1px solid rgba(212,165,116,0.18); border-radius: 12px; padding: 0.9rem 1.1rem; font-size: 0.84rem; color: rgba(255,255,255,0.65); line-height: 1.55; }
+
+    .sel-banner { background: none; color: inherit; padding: 0; margin-bottom: 2rem; display: block; }
+    
+    .donation-target-banner {
+        display: flex; align-items: stretch; gap: 0; background: var(--white);
+        border: 2px solid rgba(47,82,51,0.2); border-radius: 16px; overflow: hidden;
+        box-shadow: 0 4px 20px rgba(47,82,51,0.1); position: relative;
+    }
+    .target-banner-img { position: relative; width: 200px; flex-shrink: 0; }
+    .target-banner-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .target-badge { position: absolute; top: 12px; left: 12px; background: var(--primary); color: white; font-size: 0.7rem; padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 700; }
+    .target-banner-body { flex: 1; padding: 1.2rem 1.5rem; background: linear-gradient(135deg, rgba(47,82,51,0.03) 0%, rgba(212,165,116,0.05) 100%); display: flex; flex-direction: column; gap: 0.4rem; }
+    .target-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--primary); margin: 0; font-weight: 800; }
+    .target-overview { font-size: 0.85rem; color: var(--text-muted); margin: 0; font-style: italic; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .target-details { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.2rem; }
+    .target-detail-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--text); font-weight: 600; }
+    .btn-clear-target { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.1); border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--dark); transition: 0.2s; z-index: 5; }
+    .btn-clear-target:hover { background: #ff4d4d; color: white; }
+
+    /* ===== CONTACT VIEWS ===== */
+    /* Diptych landing */
+    .contact-diptych { display: grid; grid-template-columns: 1fr 1fr; align-items: stretch; position: relative; border-top: 1px solid rgba(212,165,116,0.15); }
+    .diptych-divider { position: absolute; top: 8%; bottom: 8%; left: 50%; width: 1px; transform: translateX(-50%); background: linear-gradient(to bottom, transparent, rgba(212,165,116,0.35) 20%, rgba(212,165,116,0.35) 80%, transparent); z-index: 10; pointer-events: none; }
+    .diptych-diamond { position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; background: var(--accent); transform: translate(-50%,-50%) rotate(45deg); z-index: 11; box-shadow: 0 0 0 3px white, 0 0 0 5px rgba(212,165,116,0.3); }
+
+    /* Left card — team */
+    .diptych-team {
+      background:
+        radial-gradient(ellipse at 80% 10%, rgba(74,127,80,0.35) 0%, transparent 60%),
+        radial-gradient(ellipse at 10% 90%, rgba(212,165,116,0.07) 0%, transparent 50%),
+        linear-gradient(155deg, #2f5233 0%, #1a2e1c 100%);
+      padding: 3.25rem 3.25rem 3rem; display: flex; flex-direction: column;
+      border-radius: 0 0 0 40px; position: relative; overflow: hidden;
+    }
+    .diptych-team::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 200px 200px; opacity: 0.45;
+    }
+    .diptych-team::after { content: ''; position: absolute; top: -80px; right: -80px; width: 230px; height: 230px; border-radius: 50%; border: 1px solid rgba(212,165,116,0.12); pointer-events: none; }
+
+    /* Right card — self */
+    .diptych-self {
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(212,165,116,0.07) 0%, transparent 55%),
+        var(--bg);
+      padding: 3.25rem 3.25rem 3rem; display: flex; flex-direction: column;
+      border-radius: 0 0 40px 0; position: relative; overflow: hidden; border-left: 1px solid var(--border);
+    }
+    .diptych-self::after { content: ''; position: absolute; bottom: -60px; right: -60px; width: 200px; height: 200px; border-radius: 50%; border: 1px solid rgba(47,82,51,0.06); pointer-events: none; }
+
+    /* Shared diptych elements */
+    .dip-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.3rem 0.85rem 0.3rem 0.75rem; border-radius: 50px; width: fit-content; margin-bottom: 1.6rem; }
+    .dip-badge::before { content: '◆'; font-size: 0.5rem; }
+    .diptych-team .dip-badge { color: var(--accent); background: rgba(212,165,116,0.12); border: 1px solid rgba(212,165,116,0.25); }
+    .diptych-self .dip-badge { color: var(--primary); background: rgba(47,82,51,0.08); border: 1px solid rgba(47,82,51,0.18); }
+
+    .dip-title { font-family: 'Playfair Display', serif; font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; margin-bottom: 0.5rem; }
+    .diptych-team .dip-title { color: #fff; }
+    .diptych-self .dip-title { color: var(--dark); }
+
+    .dip-rule { width: 38px; height: 2px; margin: 1rem 0; }
+    .diptych-team .dip-rule { background: linear-gradient(to right, var(--accent), transparent); }
+    .diptych-self .dip-rule { background: linear-gradient(to right, var(--primary), transparent); }
+
+    .dip-desc { font-size: 1rem; line-height: 1.65; margin-bottom: 1.6rem; }
+    .diptych-team .dip-desc { color: rgba(255,255,255,0.65); }
+    .diptych-self .dip-desc { color: var(--text-muted); }
+
+    .dip-perks { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 2.2rem; flex: 1; }
+    .dip-perks li { font-size: 0.95rem; display: flex; align-items: flex-start; gap: 0.65rem; line-height: 1.4; }
+    .dip-perks li::before { content: '✦'; font-size: 0.55rem; flex-shrink: 0; margin-top: 5px; }
+    .diptych-team .dip-perks li { color: rgba(255,255,255,0.82); }
+    .diptych-team .dip-perks li::before { color: var(--accent); }
+    .diptych-self .dip-perks li { color: var(--dark); opacity: 0.82; }
+    .diptych-self .dip-perks li::before { color: var(--primary); }
+
+    .btn-dip { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.9rem 1.2rem 0.9rem 1.5rem; border-radius: 50px; font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; border: none; transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease; width: 100%; letter-spacing: 0.01em; }
+    .btn-dip-arrow { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.22s ease; }
+    .btn-dip:hover { transform: translateY(-2px); }
+    .btn-dip:hover .btn-dip-arrow { transform: translateX(3px); }
+    .diptych-team .btn-dip { background: linear-gradient(135deg, var(--accent) 0%, #e8c99a 100%); color: var(--dark); }
+    .diptych-team .btn-dip:hover { box-shadow: 0 8px 24px rgba(212,165,116,0.4); }
+    .diptych-team .btn-dip-arrow { background: rgba(26,36,33,0.12); color: var(--dark); }
+    .diptych-self .btn-dip { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
+    .diptych-self .btn-dip:hover { background: var(--primary); color: white; box-shadow: 0 8px 24px rgba(47,82,51,0.25); }
+    .diptych-self .btn-dip-arrow { background: rgba(47,82,51,0.08); color: var(--primary); }
+    .diptych-self .btn-dip:hover .btn-dip-arrow { background: rgba(255,255,255,0.15); color: white; }
+
+    /* Back buttons */
+    .btn-back { display: inline-flex; align-items: center; gap: 0.5rem; background: none; border: 1px solid rgba(255,255,255,0.22); padding: 0.55rem 1.1rem; border-radius: 50px; font-family: 'Crimson Text',serif; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); cursor: pointer; transition: color 0.2s, border-color 0.2s, background 0.2s; margin-bottom: 2rem; }
+    .btn-back:hover { border-color: rgba(255,255,255,0.7); color: white; background: rgba(255,255,255,0.06); }
+    .btn-back.dark { border-color: var(--border); color: var(--text-muted); }
+    .btn-back.dark:hover { border-color: var(--primary); color: var(--primary); background: rgba(47,82,51,0.05); }
+
+    /* Form view wrapper */
+    .form-view-wrap { padding: 3rem 4rem 3.5rem; border-top: 1px solid var(--border); }
+
+    /* Admin premium wrapper — light theme */
+    .admin-premium-wrap {
+      background: white;
+      padding: 3rem 4rem 3.5rem; border-radius: 0 0 40px 40px; position: relative; overflow: hidden;
+      border-top: 1px solid var(--border);
+    }
+    .admin-premium-wrap::before { display: none; }
+    .admin-premium-wrap::after { content: ''; position: absolute; top: -120px; right: -120px; width: 340px; height: 340px; border-radius: 50%; border: 1px solid rgba(47,82,51,0.05); pointer-events: none; }
+    .admin-head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; position: relative; z-index: 1; }
+    .admin-premium-title { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 700; color: var(--dark); letter-spacing: -0.02em; line-height: 1.1; margin: 0; }
+    .premium-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--primary); background: rgba(47,82,51,0.07); border: 1px solid rgba(47,82,51,0.2); padding: 0.4rem 0.9rem; border-radius: 50px; white-space: nowrap; flex-shrink: 0; margin-top: 0.35rem; }
+    .premium-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); animation: pulse-gold 2s ease-in-out infinite; }
+    @keyframes pulse-gold { 0%,100% { box-shadow: 0 0 0 0 rgba(47,82,51,0.4); } 50% { box-shadow: 0 0 0 5px rgba(47,82,51,0); } }
+    .admin-rule-gold { width: 52px; height: 2px; background: linear-gradient(to right, var(--accent), rgba(212,165,116,0.2)); margin: 1rem 0 0.9rem; position: relative; z-index: 1; }
+    .admin-premium-desc { font-family: 'Crimson Text', serif; font-size: 1.08rem; line-height: 1.7; color: var(--text-muted); margin-bottom: 2.2rem; max-width: 560px; position: relative; z-index: 1; }
+
+    /* Channel cards */
+    .channel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.8rem; position: relative; z-index: 1; }
+    .channel-card-new { display: flex; align-items: flex-start; gap: 1rem; padding: 1.2rem 1.4rem; background: var(--bg); border: 1px solid var(--border); border-radius: 18px; text-decoration: none; transition: background 0.22s, border-color 0.22s, transform 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+    .channel-card-new:hover { background: rgba(47,82,51,0.04); border-color: rgba(47,82,51,0.25); transform: translateY(-2px); }
+    .ch-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+    .ch-icon-line { background: linear-gradient(135deg, #06C755, #04a249); }
+    .ch-icon-email { background: rgba(212,165,116,0.2); }
+    .ch-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.2rem; }
+    .ch-val { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; color: var(--dark); }
+    .ch-cta { font-family: 'Crimson Text', serif; font-size: 0.82rem; color: var(--primary); margin-top: 0.2rem; }
+
+    /* Process steps — scoped to .process-panel to avoid conflicting with #process section */
+    .admin-content-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; position: relative; z-index: 1; margin-bottom: 1.8rem; }
+    .process-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 18px; padding: 1.5rem 1.4rem; }
+    .panel-lbl { font-size: 0.67rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.2rem; }
+    .process-panel .proc-step { display: flex; align-items: flex-start; gap: 0.9rem; padding: 0.8rem 0; position: relative; border-bottom: 1px solid var(--border); text-align: left; z-index: 1; }
+    .process-panel .proc-step:last-child { border-bottom: none; padding-bottom: 0; }
+    .process-panel .proc-num { width: 30px; height: 30px; min-width: 30px; border-radius: 50%; border: 1px solid rgba(47,82,51,0.25); display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 0.82rem; font-weight: 700; color: var(--primary); flex-shrink: 0; background: rgba(47,82,51,0.06); position: static; }
+    .proc-step-title { font-family: 'Crimson Text', serif; font-size: 0.95rem; font-weight: 600; color: var(--dark); line-height: 1.3; }
+    .proc-step-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.1rem; }
+
+    /* Status panel */
+    .status-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 18px; padding: 1.5rem 1.4rem; }
+    .status-row { display: flex; align-items: center; gap: 0.7rem; padding: 0.45rem 0; border-bottom: 1px solid var(--border); }
+    .status-row:last-child { border-bottom: none; }
+    .st-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .st-label { font-family: 'Crimson Text', serif; font-size: 0.9rem; color: var(--text); }
+
+    /* Admin note strip */
+    .admin-strip { display: flex; align-items: center; gap: 0.9rem; padding: 1rem 1.3rem; background: rgba(47,82,51,0.05); border: 1px solid rgba(47,82,51,0.15); border-radius: 14px; position: relative; z-index: 1; }
+    .strip-ico { width: 36px; height: 36px; background: rgba(47,82,51,0.09); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .strip-txt { font-family: 'Crimson Text', serif; font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+    .strip-txt strong { color: var(--primary); font-weight: 600; }
+
+    @media (max-width: 900px) {
+      .contact-diptych { grid-template-columns: 1fr; }
+      .diptych-divider, .diptych-diamond { display: none; }
+      .diptych-team { border-radius: 0; }
+      .diptych-self { border-radius: 0; border-left: none; border-top: 1px solid rgba(255,255,255,0.08); }
+      .channel-grid, .admin-content-row { grid-template-columns: 1fr; }
+      .admin-premium-wrap { padding: 2.5rem 1.5rem 3rem; }
+      .form-view-wrap { padding: 2rem 1.5rem 2.5rem; }
+    }
+    @media (max-width: 768px) {
+      .diptych-team, .diptych-self { padding: 2.5rem 1.5rem; }
+    }
+
+    /* ===== FOOTER ===== */
+    footer { background: var(--dark); color: white; padding: 6rem 0 3rem; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 4rem; }
+    .footer-logo { font-size: 2rem; font-weight: 800; color: var(--accent); margin-bottom: 1.5rem; font-family: 'Playfair Display', serif; }
+    .footer-text { color: rgba(255,255,255,0.5); font-size: 1.1rem; line-height: 1.7; margin-bottom: 2rem; }
+    .footer-col h5 { font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; color: white; }
+    .footer-links { list-style: none; }
+    .footer-links li { margin-bottom: 1rem; }
+    .footer-links a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 1rem; transition: 0.2s; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); margin-top: 5rem; padding-top: 2rem; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.9rem; }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .hero-inner { grid-template-columns: 1fr; text-align: center; }
+      .hero-cta { justify-content: center; }
+      .hero-dash { max-width: 500px; margin: 0 auto; }
+      .why-grid, .pkg-grid, .proc-grid { grid-template-columns: 1fr 1fr; }
+      .proc-grid::after { display: none; }
+    }
+    @media (max-width: 768px) {
+      .section-title { font-size: 2.2rem; }
+      .why-grid, .pkg-grid, .proc-grid { grid-template-columns: 1fr; }
+      .contact-split { grid-template-columns: 1fr; }
+      .contact-admin { border-radius: 0 0 40px 40px; border-left: none; border-top: 1px solid rgba(255,255,255,0.08); }
+      .contact-head { padding: 2.5rem 1.5rem 1.5rem; }
+      .contact-self { padding: 2rem 1.5rem 2.5rem; }
+      .contact-admin { padding: 2rem 1.5rem 2.5rem; }
+      .pay-steps { padding: 0 1.5rem 2rem; flex-wrap: wrap; gap: 0.5rem; }
+      .pay-step::after { display: none; }
+      .form-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; gap: 3rem; }
+    }
+
+    /* AOS Visibility Fallback: Only hide elements if AOS successfully initializes */
+    .aos-init [data-aos] { 
+      opacity: 0; 
+      transform: translateY(30px); 
+    }
+    .aos-init [data-aos].aos-animate { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+    /* Base transition for smooth animation */
+    [data-aos] { 
+      transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+
+    #notification {
+      position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 2rem; border-radius: 15px; z-index: 10000;
+      font-weight: 700; display: none; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    #notification.success { background: var(--primary); color: white; }
+    #notification.error { background: #d32f2f; color: white; }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">
+      <img src="assets/logo-gearup.png" alt="GEARUP" onerror="this.style.display='none'">
+      <div class="nav-logo-text">
+        GEARUP
+        <span>Corporate ESG</span>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#why">ทำไมต้องเรา</a></li>
+      <li><a href="#schools">โรงเรียน</a></li>
+      <li><a href="#packages">แพ็คเกจ</a></li>
+      <li><a href="#process">ขั้นตอน</a></li>
+      <li><a href="#contact" class="btn-nav">เริ่มโครงการ</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="hero-content" data-aos="fade-up">
+          <h1>ยกระดับ CSR องค์กร<br>สู่ <span class="accent">ESG มาตรฐานสากล</span></h1>
+          <p>เปลี่ยนอุปกรณ์ไอทีที่ไม่ใช้งาน ให้เป็นโอกาสทางการศึกษาที่ยิ่งใหญ่ พร้อมรับรายงานผลกระทบที่ตรวจสอบได้ 100% เพื่อความยั่งยืนของธุรกิจคุณ</p>
+          <div class="hero-cta">
+            <a href="#packages" class="btn btn-pri">เลือกแพ็คเกจ</a>
+            <a href="#schools" class="btn btn-sec">สำรวจเป้าหมาย</a>
+          </div>
+        </div>
+
+        <div class="hero-dash" data-aos="fade-up" style="transition-delay: 0.1s">
+          <div class="dash-header">
+            <span class="dash-header-title">ผลกระทบสะสม</span>
+            <div class="dash-live">
+              <div class="dash-live-dot"></div>
+              <span class="dash-live-label">Live Data</span>
+            </div>
+          </div>
+          <div class="dash-body">
+            <div class="dash-grid">
+              <div class="dash-item">
+                <span class="dash-item-icon">🖥️</span>
+                <div class="dash-accent-bar"></div>
+                <span class="num" id="dashItems">1,247</span>
+                <span class="lbl">เครื่องส่งมอบ</span>
+              </div>
+              <div class="dash-item">
+                <span class="dash-item-icon">🌿</span>
+                <div class="dash-accent-bar" style="background:var(--primary)"></div>
+                <span class="num" id="dashCarbon">156K</span>
+                <span class="lbl">kgCO₂e Offset</span>
+              </div>
+            </div>
+            <div class="dash-divider"></div>
+            <div class="dash-grid">
+              <div class="dash-item">
+                <span class="dash-item-icon">🏫</span>
+                <div class="dash-accent-bar" style="background:var(--secondary)"></div>
+                <span class="num" id="dashSchools">89</span>
+                <span class="lbl">โรงเรียน</span>
+              </div>
+              <div class="dash-item">
+                <span class="dash-item-icon">⚖️</span>
+                <div class="dash-accent-bar" style="background:#7aad8a"></div>
+                <span class="num" id="dashWeight">12.5</span>
+                <span class="lbl">น้ำหนักรวม (ตัน)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY GEARUP -->
+  <section id="why">
+    <div class="container">
+      <div class="section-header" data-aos="fade-up">
+        <span class="section-label">Business Advantages</span>
+        <h2 class="section-title">ทำไมองค์กรชั้นนำถึงเลือก GEARUP</h2>
+        <p class="section-desc">เราไม่ได้แค่ส่งมอบอุปกรณ์ แต่เรามอบมูลค่าทางธุรกิจและความน่าเชื่อถือให้กับแบรนด์ของคุณผ่านกระบวนการที่เป็นมาตรฐานสากล</p>
+      </div>
+      <div class="why-grid">
+        <div class="why-card" data-aos="fade-up">
+          <div class="why-icon">🔐</div>
+          <h3>ความปลอดภัยข้อมูลสูงสุด</h3>
+          <p>บริการ Data Wiping ลบข้อมูลถาวรตามมาตรฐาน NIST 800-88 มั่นใจได้ว่าข้อมูลความลับขององค์กรจะไม่รั่วไหล</p>
+        </div>
+        <div class="why-card" data-aos="fade-up" style="transition-delay: 0.1s">
+          <div class="why-icon">📊</div>
+          <h3>รายงาน ESG พร้อมยื่น</h3>
+          <p>รายงานมาตรฐาน GHG Protocol ที่สามารถนำไปใช้ใน One Report (56-1) หรือรายงานประจำปีได้ทันที</p>
+        </div>
+        <div class="why-card" data-aos="fade-up" style="transition-delay: 0.2s">
+          <div class="why-icon">🛡️</div>
+          <h3>โปร่งใส ตรวจสอบได้</h3>
+          <p>ระบบ Tracking แบบเครื่องต่อเครื่อง พร้อมหลักฐานภาพถ่ายการรับมอบที่ชัดเจน ตรวจสอบได้ทุกเวลา</p>
+        </div>
+        <div class="why-card" data-aos="fade-up" style="transition-delay: 0.3s">
+          <div class="why-icon">🌟</div>
+          <h3>ยกระดับภาพลักษณ์แบรนด์</h3>
+          <p>สร้าง Storytelling ที่แข็งแกร่งผ่าน Content บนโซเชียลมีเดีย ช่วยเพิ่มมูลค่าทางจิตใจให้กับแบรนด์</p>
+        </div>
+        <div class="why-card" data-aos="fade-up" style="transition-delay: 0.4s">
+          <div class="why-icon">⚙️</div>
+          <h3>บริการแบบครบวงจร</h3>
+          <p>เราดูแลให้หมดตั้งแต่การจัดทำรายการ การประสานงานขนส่ง ไปจนถึงการติดตั้งซอฟต์แวร์ลิขสิทธิ์</p>
+        </div>
+        <div class="why-card" data-aos="fade-up" style="transition-delay: 0.5s">
+          <div class="why-icon">📉</div>
+          <h3>ประหยัดภาษีและค่าใช้จ่าย</h3>
+          <p>ลดภาระฝ่ายไอทีในการจัดการของเสีย และได้รับสิทธิประโยชน์ทางภาษีจากการบริจาคตามกฎหมาย</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCHOOLS (MATCHING MAIN SITE) -->
+  <section id="schools">
+    <div class="container">
+      <div class="section-header" data-aos="fade-up">
+        <span class="section-label">เลือกโรงเรียนหรือองค์กรที่คุณอยากช่วย</span>
+        <h2 class="section-title">โรงเรียนที่รอคอยการสนับสนุน</h2>
+        <p class="section-desc">เลือกโพสต์ที่ต้องการบริจาค หรือบริจาคแบบทั่วไป</p>
+      </div>
+      <div id="schoolsGrid" class="schools-grid">
+        <!-- JS will load cards here -->
+        <p style="text-align: center; grid-column: 1/-1; padding: 3rem; color: var(--text-muted);">กำลังดึงข้อมูลโครงการล่าสุด...</p>
+      </div>
+      <div id="schoolsActionArea" style="text-align:center;margin-top:2rem;"></div>
+    </div>
+  </section>
+
+  <!-- PACKAGES -->
+  <section id="packages">
+    <div class="container">
+      <div class="section-header" data-aos="fade-up">
+        <span class="section-label">Tailored Packages</span>
+        <h2 class="section-title">แพ็คเกจที่ตอบโจทย์ทุกขนาดองค์กร</h2>
+      </div>
+      <div class="pkg-grid">
+
+        <!-- S: Starter CSR -->
+        <div class="pkg-card" data-aos="fade-up">
+          <h3 class="pkg-name">Starter CSR</h3>
+          <span class="pkg-sub">5 – 20 อุปกรณ์</span>
+
+          <!-- Annual flat-rate price -->
+          <div style="text-align:center;margin:1.2rem 0 0.4rem;">
+            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:0.35rem;">ราคาเหมาจ่าย (รวม ESG)</div>
+            <div style="display:flex;align-items:baseline;justify-content:center;gap:0.3rem;">
+              <span style="font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:800;color:var(--primary);line-height:1;">35,500</span>
+              <span style="font-size:1rem;font-weight:700;color:var(--secondary);">บาท/ปี</span>
+            </div>
+          </div>
+
+          <!-- Breakdown -->
+          <div class="pkg-cost-section" style="margin-top:1rem;">
+            <div class="pkg-cost-header">ประกอบด้วย</div>
+            <div class="pkg-cost-row">
+              <span class="pkg-cost-label">พื้นที่ประชาสัมพันธ์ 3 เดือน</span>
+              <div class="pkg-cost-val">
+                <span class="pkg-cost-amount">7,500</span>
+                <span class="pkg-cost-unit">บาท (2,500 × 3)</span>
+              </div>
+            </div>
+            <div class="pkg-cost-row">
+              <span class="pkg-cost-label">ติดตั้งซอฟต์แวร์ ≤ 20 เครื่อง</span>
+              <div class="pkg-cost-val">
+                <span class="pkg-cost-amount">6,000</span>
+                <span class="pkg-cost-unit">บาท (300 × 20)</span>
+              </div>
+            </div>
+            <div class="pkg-cost-row" style="background:rgba(47,82,51,0.05);">
+              <span class="pkg-cost-label">รายงาน ESG ฉบับพื้นฐาน</span>
+              <div class="pkg-cost-val">
+                <span class="pkg-cost-amount">22,000</span>
+                <span class="pkg-cost-unit">บาท/ปี</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pkg-section-label" style="margin-top:1.2rem;">สิ่งที่ได้รับ</div>
+          <ul class="pkg-list">
+            <li>Tracking รายเครื่อง 100%</li>
+            <li>ESG Report ฉบับพื้นฐาน</li>
+            <li>ใบประกาศเกียรติคุณองค์กร</li>
+            <li class="off">รายงานวิเคราะห์สังคมเชิงลึก</li>
+            <li class="off">ที่ปรึกษาด้าน ESG รายปี</li>
+          </ul>
+          <a href="#contact" class="btn-pkg" onclick="setPackageInterest('S')">สนใจแพ็คเกจ S</a>
+        </div>
+
+        <!-- M: Professional ESG -->
+        <div class="pkg-card featured" data-aos="fade-up" style="transition-delay: 0.1s">
+          <div class="pkg-recommended">RECOMMENDED</div>
+          <h3 class="pkg-name">Professional ESG</h3>
+          <span class="pkg-sub">21 – 70 อุปกรณ์</span>
+
+          <!-- Annual flat-rate price -->
+          <div style="text-align:center;margin:1.2rem 0 0.4rem;">
+            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:0.35rem;">ราคาเหมาจ่าย (รวม ESG)</div>
+            <div style="display:flex;align-items:baseline;justify-content:center;gap:0.3rem;">
+              <span style="font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:800;color:var(--accent);line-height:1;">84,500</span>
+              <span style="font-size:1rem;font-weight:700;color:var(--secondary);">บาท/ปี</span>
+            </div>
+          </div>
+
+          <!-- Breakdown -->
+          <div class="pkg-cost-section" style="margin-top:1rem;">
+            <div class="pkg-cost-header">ประกอบด้วย</div>
+            <div class="pkg-cost-row">
+              <span class="pkg-cost-label">พื้นที่ประชาสัมพันธ์ 6 เดือน</span>
+              <div class="pkg-cost-val">
+                <span class="pkg-cost-amount">15,000</span>
+                <span class="pkg-cost-unit">บาท (2,500 × 6)</span>
+              </div>
+            </div>
+            <div class="pkg-cost-row">
+              <span class="pkg-cost-label">ติดตั้งซอฟต์แวร์ ≤ 70 เครื่อง</span>
+              <div class="pkg-cost-val">
+                <span class="pkg-cost-amount">17,500</span>
+                <span class="pkg-cost-unit">บาท (250 × 70)</span>
+              </div>
+            </div>
+            <div class="pkg-cost-row" style="background:rgba(47,82,51,0.05);">
+              <span class="pkg-cost-label">รายงาน ESG มาตรฐานสากล</span>
+              <div class="pkg-cost-val">
+                <span class="pkg-cost-amount">52,000</span>
+                <span class="pkg-cost-unit">บาท/ปี</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pkg-section-label" style="margin-top:1.2rem;">สิ่งที่ได้รับ</div>
+          <ul class="pkg-list">
+            <li>Tracking ID & Photo Logs</li>
+            <li>รายงาน ESG มาตรฐานสากล</li>
+            <li>Carbon Offset Certificate</li>
+            <li>ดูแลการติดตั้ง MS License</li>
+            <li class="off">สิทธิ Exclusive Partner</li>
+          </ul>
+          <a href="#contact" class="btn-pkg" onclick="setPackageInterest('M')">สนใจแพ็คเกจ M</a>
+        </div>
+
+        <!-- L: Corporate Impact -->
+        <div class="pkg-card" data-aos="fade-up" style="transition-delay: 0.2s">
+          <h3 class="pkg-name">Corporate Impact</h3>
+          <span class="pkg-sub">100 – 150 อุปกรณ์</span>
+
+          <!-- Annual flat-rate price -->
+          <div style="text-align:center;margin:1.2rem 0 0.4rem;">
+            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:0.35rem;">ราคาเหมาจ่าย (รวม ESG)</div>
+            <div style="display:flex;align-items:baseline;justify-content:center;gap:0.3rem;">
+              <span style="font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:800;color:var(--primary);line-height:1;">158,000</span>
+              <span style="font-size:1rem;font-weight:700;color:var(--secondary);">บาท/ปี</span>
+            </div>
+          </div>
+
+          <!-- Breakdown -->
+          <div class="pkg-cost-section" style="margin-top:1rem;">
+            <div class="pkg-cost-header">ประกอบด้วย</div>
+            <div class="pkg-cost-row">
+              <span class="pkg-cost-label">พื้นที่ประชาสัมพันธ์ 12 เดือน</span>
+              <div class="pkg-cost-val">
+                <span class="pkg-cost-amount">30,000</span>
+                <span class="pkg-cost-unit">บาท (2,500 × 12)</span>
+              </div>
+            </div>
+            <div class="pkg-cost-row">
+              <span class="pkg-cost-label">ติดตั้งซอฟต์แวร์ ≤ 150 เครื่อง</span>
+              <div class="pkg-cost-val">
+                <span class="pkg-cost-amount">30,000</span>
+                <span class="pkg-cost-unit">บาท (200 × 150)</span>
+              </div>
+            </div>
+            <div class="pkg-cost-row" style="background:rgba(47,82,51,0.05);">
+              <span class="pkg-cost-label">Full ESG Audit Report</span>
+              <div class="pkg-cost-val">
+                <span class="pkg-cost-amount">98,000</span>
+                <span class="pkg-cost-unit">บาท/ปี</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pkg-section-label" style="margin-top:1.2rem;">สิ่งที่ได้รับ</div>
+          <ul class="pkg-list">
+            <li>Full ESG Audit Report</li>
+            <li>รายงานวิเคราะห์สังคม (SROI)</li>
+            <li>สิทธิการเป็น Exclusive Partner</li>
+            <li>ติดตั้ง License & Setup พิเศษ</li>
+            <li>ESG Support ตลอดโครงการ</li>
+          </ul>
+          <a href="#contact" class="btn-pkg" onclick="setPackageInterest('L')">สนใจแพ็คเกจ L</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ADD-ON INFO STRIP -->
+  <div class="addon-strip-wrap">
+    <div class="addon-strip-inner">
+      <div class="addon-strip-title">
+        <span>GEARUP Add-on Services</span> — บริการเสริมนอกแพ็คเกจ
+      </div>
+      <div class="addon-cards">
+        <div class="addon-card">
+          <div class="addon-icon">📢</div>
+          <div class="addon-body">
+            <div class="addon-name">เพิ่มพื้นที่ประชาสัมพันธ์</div>
+            <div class="addon-price">2,500 บาท / เดือน</div>
+            <div class="addon-price-sub">ขยายระยะเวลาการประชาสัมพันธ์โครงการ CSR ขององค์กรบนแพลตฟอร์ม GEARUP</div>
+          </div>
+        </div>
+        <div class="addon-card">
+          <div class="addon-icon">💻</div>
+          <div class="addon-body">
+            <div class="addon-name">ติดตั้ง MS / Windows License</div>
+            <div class="addon-price">S: 300 บาท/เครื่อง</div>
+            <div class="addon-price-sub">M–L: 250 บาท/เครื่อง · บริการติดตั้งลิขสิทธิ์ซอฟต์แวร์เกินโควตาแพ็คเกจ</div>
+          </div>
+        </div>
+      </div>
+      <p class="addon-strip-note">ต้องการบริการเสริม? <a onclick="showContactView('form'); document.getElementById('contact').scrollIntoView({behavior:'smooth'})">แจ้งทีมงานได้เลยในฟอร์มด้านล่าง</a></p>
+    </div>
+  </div>
+
+  <!-- PROCESS -->
+  <section id="process">
+    <div class="container">
+      <div class="section-header" data-aos="fade-up">
+        <span class="section-label">Service Process</span>
+        <h2 class="section-title">5 ขั้นตอนสู่การสร้าง Impact ที่ยั่งยืน</h2>
+      </div>
+      <div class="proc-grid">
+        <div class="proc-step" data-aos="fade-up">
+          <div class="proc-graphic">🏫 <span class="proc-num">1</span></div>
+          <h4>เลือกโครงการ</h4>
+          <p>เลือกโรงเรียนที่คุณต้องการสนับสนุน หรือให้เราช่วยแนะนำตามความเหมาะสม</p>
+        </div>
+        <div class="proc-step" data-aos="fade-up" style="transition-delay: 0.1s">
+          <div class="proc-graphic">📜 <span class="proc-num">2</span></div>
+          <h4>รับใบเสนอราคา</h4>
+          <p>กรอกข้อมูลเบื้องต้นเพื่อรับรายละเอียดค่าบริการและใบเสนอราคาทางการ</p>
+        </div>
+        <div class="proc-step" data-aos="fade-up" style="transition-delay: 0.2s">
+          <div class="proc-graphic">🤝 <span class="proc-num">3</span></div>
+          <h4>ยืนยันโครงการ</h4>
+          <p>ชำระค่าบริการและยืนยันรายการอุปกรณ์ที่จะส่งมอบให้เรียบร้อย</p>
+        </div>
+        <div class="proc-step" data-aos="fade-up" style="transition-delay: 0.3s">
+          <div class="proc-graphic">🚚 <span class="proc-num">4</span></div>
+          <h4>ดำเนินการมอบ</h4>
+          <p>GEARUP ประสานงาน ขนส่ง และติดตั้งอุปกรณ์ให้ถึงที่หมายอย่างปลอดภัย</p>
+        </div>
+        <div class="proc-step" data-aos="fade-up" style="transition-delay: 0.4s">
+          <div class="proc-graphic">📊 <span class="proc-num">5</span></div>
+          <h4>รับ ESG Report</h4>
+          <p>รับรายงานผลกระทบที่สมบูรณ์แบบพร้อมเกียรติบัตรเพื่อใช้ในรายงานองค์กร</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVIEWS -->
+  <section id="reviews">
+    <div class="container">
+      <div class="rev-box" data-aos="fade-up">
+        <p class="rev-text">GEARUP ทำให้งาน CSR ที่เคยรู้สึกว่าซับซ้อน กลายเป็นเรื่องที่ดำเนินได้อย่างเป็นระบบและมืออาชีพ รายงาน ESG ที่ได้รับมีความครบถ้วนและน่าเชื่อถือ ไม่ต้องห่วงเรื่องความโปร่งใสเลย เพราะทุกอุปกรณ์มี Tracking ID และรายงานบอกชัดว่าไปถึงมือใคร ที่ไหน</p>
+        <div class="rev-user">
+          <div class="rev-avatar">PJ</div>
+          <div class="rev-info">
+            <div class="rev-name">คุณพาทิศ จิตต์เยี่ยม</div>
+            <div class="rev-job">Head of Sustainability, TechCorp Thailand</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT FORM -->
+  <section id="contact">
+    <div class="container">
+      <div class="contact-card" data-aos="fade-up">
+
+        <!-- =================== LANDING VIEW =================== -->
+        <div id="contactLanding">
+          <!-- Header -->
+          <div class="contact-head">
+            <div class="section-header">
+              <span class="section-label">Contact Us</span>
+              <h2 class="section-title">เริ่มสร้างการเปลี่ยนแปลงวันนี้</h2>
+              <p class="section-desc" style="color:var(--text-muted)">เลือกรูปแบบการดำเนินงานที่เหมาะกับองค์กรของคุณ</p>
+            </div>
+          </div>
+
+          <!-- Payment Flow Steps -->
+          <div class="pay-steps">
+            <div class="pay-step"><div class="pay-step-icon">📋</div><div class="pay-step-text">ส่งข้อมูลองค์กร</div></div>
+            <div class="pay-step"><div class="pay-step-icon">📧</div><div class="pay-step-text">รับใบเสนอราคาทางอีเมล</div></div>
+            <div class="pay-step"><div class="pay-step-icon">💳</div><div class="pay-step-text">ชำระเงิน</div></div>
+            <div class="pay-step"><div class="pay-step-icon">🔄</div><div class="pay-step-text">แอดมินอัปเดตสถานะ</div></div>
+            <div class="pay-step"><div class="pay-step-icon">🚀</div><div class="pay-step-text">เริ่มโครงการ</div></div>
+          </div>
+
+          <!-- Diptych choice cards -->
+          <div class="contact-diptych">
+            <div class="diptych-divider"></div>
+            <div class="diptych-diamond"></div>
+
+            <!-- Left: Via Team -->
+            <div class="diptych-team">
+              <span class="dip-badge">แนะนำ</span>
+              <h3 class="dip-title">ส่งข้อมูลผ่านทีมงาน GEARUP</h3>
+              <div class="dip-rule"></div>
+              <p class="dip-desc">สำหรับองค์กรที่ต้องการให้ทีมงานดูแลทุกขั้นตอน ตั้งแต่การลงทะเบียน การเลือกโรงเรียน จนถึงการรายงานผล — แนะนำสำหรับแพ็คเกจ M และ L</p>
+              <ul class="dip-perks">
+                <li>ทีมงานบันทึกข้อมูลเข้าระบบให้ทั้งหมด</li>
+                <li>จัดทำและส่งใบเสนอราคาทางอีเมล</li>
+                <li>ช่วยเลือกโรงเรียนและกระจายอุปกรณ์</li>
+                <li>อัปเดตสถานะโครงการตลอดสัญญา</li>
+              </ul>
+              <button class="btn-dip" onclick="showContactView('admin')">
+                <span>ดูรายละเอียด</span>
+                <div class="btn-dip-arrow">→</div>
+              </button>
+            </div>
+
+            <!-- Right: Self-Service -->
+            <div class="diptych-self">
+              <span class="dip-badge">Self-Service</span>
+              <h3 class="dip-title">กรอกข้อมูลด้วยตนเอง</h3>
+              <div class="dip-rule"></div>
+              <p class="dip-desc">สำหรับองค์กรที่มีพนักงานจัดการข้อมูลเอง — กรอกฟอร์ม เลือกโรงเรียน อัปโหลดรายการอุปกรณ์ แล้วรับใบเสนอราคาทางอีเมล</p>
+              <ul class="dip-perks">
+                <li>ควบคุมข้อมูลองค์กรด้วยตัวเอง</li>
+                <li>เลือก 1 โรงเรียน หรือกระจายหลายโรงเรียน</li>
+                <li>อัปโหลดรายการอุปกรณ์ (.xlsx / .pdf)</li>
+                <li>รับใบเสนอราคาทางอีเมลภายใน 1 วัน</li>
+              </ul>
+              <button class="btn-dip" onclick="showContactView('form')">
+                <span>กรอกข้อมูล</span>
+                <div class="btn-dip-arrow">→</div>
+              </button>
+            </div>
+          </div>
+        </div><!-- /contactLanding -->
+
+        <!-- =================== FORM VIEW =================== -->
+        <div id="contactFormView" style="display:none">
+          <div class="form-view-wrap">
+            <button class="btn-back dark" onclick="showContactView('landing')">&#8592; ย้อนกลับ</button>
+            <h3 style="font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:800;color:var(--dark);margin-bottom:0.4rem;">กรอกข้อมูลด้วยตนเอง</h3>
+            <p style="font-size:0.92rem;color:var(--text-muted);margin-bottom:2rem;">กรอกข้อมูลให้ครบแล้วกด "ส่งข้อมูล" — ทีมงานจะส่งใบเสนอราคาไปยังอีเมลของคุณภายใน 1 วันทำการ</p>
+
+            <div id="formContent">
+              <!-- Package -->
+              <div class="form-group" style="margin-bottom:1.5rem;">
+                <label class="form-label">แพ็คเกจที่สนใจ</label>
+                <select id="inqPackage" class="form-input">
+                  <option value="">-- เลือกแพ็คเกจ --</option>
+                  <option value="S">Starter CSR (S) — 35,500 บาท/ปี (รวม ESG)</option>
+                  <option value="M">Professional ESG (M) — 84,500 บาท/ปี (รวม ESG)</option>
+                  <option value="L">Corporate Impact (L) — 158,000 บาท/ปี (รวม ESG)</option>
+                  <option value="unknown">ขอรับคำปรึกษาเพิ่มเติม</option>
+                </select>
+              </div>
+
+              <!-- Add-on selection -->
+              <div class="form-group" id="addonGroup" style="margin-bottom:1.5rem;">
+                <label class="form-label">บริการเสริม (Add-on) — เลือกได้มากกว่า 1:</label>
+                <div style="display:flex;flex-direction:column;gap:0.85rem;margin-top:0.6rem;">
+                  <!-- PR add-on -->
+                  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:0.75rem;">
+                    <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:1rem;font-weight:600;color:var(--text);min-width:280px;">
+                      <input type="checkbox" id="addonPR" value="pr" onchange="toggleAddonInput('PR')"> เพิ่มพื้นที่ประชาสัมพันธ์ (2,500 บาท/เดือน)
+                    </label>
+                    <div id="addonPRInput" style="display:none;align-items:center;gap:0.45rem;background:rgba(47,82,51,0.06);padding:0.35rem 0.75rem;border-radius:8px;border:1px solid rgba(47,82,51,0.18);">
+                      <span style="font-size:0.88rem;color:var(--text-muted);">จำนวน</span>
+                      <input type="number" id="addonPRMonths" min="1" max="12" value="1" style="width:65px;padding:0.3rem 0.4rem;border:1.5px solid var(--primary);border-radius:6px;font-size:0.95rem;text-align:center;font-family:inherit;">
+                      <span style="font-size:0.88rem;color:var(--text-muted);">เดือน</span>
+                    </div>
+                  </div>
+                  <!-- MS add-on -->
+                  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:0.75rem;">
+                    <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:1rem;font-weight:600;color:var(--text);min-width:280px;">
+                      <input type="checkbox" id="addonMS" value="ms" onchange="toggleAddonInput('MS')"> ติดตั้ง MS License (250–300 บาท/เครื่อง)
+                    </label>
+                    <div id="addonMSInput" style="display:none;align-items:center;gap:0.45rem;background:rgba(47,82,51,0.06);padding:0.35rem 0.75rem;border-radius:8px;border:1px solid rgba(47,82,51,0.18);">
+                      <span style="font-size:0.88rem;color:var(--text-muted);">จำนวน</span>
+                      <input type="number" id="addonMSDevices" min="1" max="500" value="1" style="width:65px;padding:0.3rem 0.4rem;border:1.5px solid var(--primary);border-radius:6px;font-size:0.95rem;text-align:center;font-family:inherit;">
+                      <span style="font-size:0.88rem;color:var(--text-muted);">เครื่อง (นอกเหนือโควตาแพ็คเกจ)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- School Allocation -->
+              <div class="form-group" style="margin-bottom:1.5rem;">
+                <label class="form-label">ระบุโรงเรียนปลายทาง</label>
+                <div class="school-mode-tabs">
+                  <button type="button" class="school-mode-btn active" onclick="setSchoolMode('single', this)">🏫 1 โรงเรียน</button>
+                  <button type="button" class="school-mode-btn" onclick="setSchoolMode('multi', this)">🏫🏫 หลายโรงเรียน</button>
+                  <button type="button" class="school-mode-btn" onclick="setSchoolMode('none', this)">⬜ ยังไม่ระบุ</button>
+                </div>
+
+                <!-- Single school -->
+                <div id="schoolModeSingle">
+                  <div id="selectedSchoolBanner" class="sel-banner" style="display:none"></div>
+                  <select id="inqTargetSchool" class="form-input" onchange="onSchoolSelectChange()">
+                    <option value="">— เลือกจากโครงการที่เปิดรับ —</option>
+                  </select>
+                  <input type="hidden" id="inqTargetRequestId">
+                </div>
+
+                <!-- Multiple schools -->
+                <div id="schoolModeMulti" style="display:none">
+                  <div class="school-multi-wrap">
+                    <table class="school-multi-table">
+                      <thead>
+                        <tr>
+                          <th>โรงเรียน / โครงการ</th>
+                          <th style="width:95px">จำนวนเครื่อง</th>
+                          <th style="width:32px"></th>
+                        </tr>
+                      </thead>
+                      <tbody id="multiSchoolBody"></tbody>
+                    </table>
+                  </div>
+                  <button type="button" class="btn-add-school" onclick="addSchoolRow()">+ เพิ่มโรงเรียน</button>
+                </div>
+
+                <!-- No school -->
+                <div id="schoolModeNone" style="display:none">
+                  <p style="font-size:0.88rem;color:var(--text-muted);background:rgba(47,82,51,0.04);border:1px dashed rgba(47,82,51,0.15);border-radius:10px;padding:0.8rem 1rem;margin:0;line-height:1.5;">
+                    ทีมงานจะช่วยแนะนำโรงเรียนที่เหมาะสมตามจำนวนอุปกรณ์และพื้นที่ที่ต้องการ
+                  </p>
+                </div>
+              </div>
+
+              <div id="specNotice"></div>
+
+              <!-- Org Info -->
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">ชื่อองค์กร / บริษัท</label>
+                  <input type="text" id="inqOrgName" class="form-input" placeholder="บริษัท ของคุณ">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ชื่อผู้ติดต่อ</label>
+                  <input type="text" id="inqContactName" class="form-input" placeholder="ระบุชื่อ-นามสกุล">
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:1.5rem;">
+                <label class="form-label">เลขประจำตัวผู้เสียภาษี (13 หลัก)</label>
+                <input type="text" id="inqTaxId" class="form-input" placeholder="x-xxxx-xxxxx-xx-x" inputmode="numeric" maxlength="13" oninput="this.value=this.value.replace(/\D/g,'').slice(0,13)">
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">อีเมลติดต่อ</label>
+                  <input type="email" id="inqEmail" class="form-input" placeholder="email@company.com">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">เบอร์โทรศัพท์</label>
+                  <input type="tel" id="inqPhone" class="form-input" placeholder="08x-xxx-xxxx" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10); applyCorpPhoneHint(this.value)">
+                  <small id="inqPhoneHint" style="display:block;font-size:0.8rem;margin-top:0.25rem;min-height:1em;color:transparent;font-family:inherit;"></small>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:1.5rem;">
+                <label class="form-label">ที่อยู่ (บ้านเลขที่ / ถนน / ซอย)</label>
+                <input type="text" id="inqAddrLine" class="form-input" placeholder="เช่น 123 ถนนสุขุมวิท ซอย 11">
+              </div>
+              <div class="form-grid" style="margin-bottom:1.5rem;">
+                <div class="form-group">
+                  <label class="form-label">จังหวัด</label>
+                  <select id="inqProvince" class="form-input" onchange="corOnProvinceChange()">
+                    <option value="">-- เลือกจังหวัด --</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">อำเภอ / เขต</label>
+                  <select id="inqDistrict" class="form-input" onchange="corOnDistrictChange()" disabled>
+                    <option value="">-- เลือกอำเภอ --</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-grid" style="margin-bottom:1.5rem;">
+                <div class="form-group">
+                  <label class="form-label">ตำบล / แขวง</label>
+                  <select id="inqSubdistrict" class="form-input" disabled>
+                    <option value="">-- เลือกตำบล --</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">รหัสไปรษณีย์</label>
+                  <input type="text" id="inqPostalCode" class="form-input" placeholder="กรอกอัตโนมัติ" readonly style="background:#f5f5f5;color:#888;cursor:default">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">รายละเอียดเพิ่มเติม</label>
+                <textarea id="inqMessage" class="form-input" style="min-height:120px;resize:none;" placeholder="ระบุความต้องการพิเศษ หรือคำถามของคุณ"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">รายการอุปกรณ์ที่จะบริจาค</label>
+                <div class="template-download-box">
+                  <p>📋 ดาวน์โหลดแบบฟอร์มรายการอุปกรณ์ กรอกข้อมูล แล้วอัพโหลดไฟล์ที่กรอกแล้วด้านล่าง</p>
+                  <button type="button" class="btn-download-template" onclick="downloadDonationTemplate()">⬇ ดาวน์โหลดแบบฟอร์ม (.xlsx)</button>
+                </div>
+                <div class="file-upload-area" onclick="document.getElementById('inqAttachment').click()">
+                  <span>📎</span>
+                  <input type="file" id="inqAttachment" accept=".pdf,.xlsx,.xls,.csv" style="display:none" onchange="onAttachmentChange(this)">
+                  <span id="attachmentLabel" style="flex:1;font-size:1rem;color:var(--text-muted);">คลิกเพื่อแนบไฟล์ PDF หรือ Excel</span>
+                </div>
+                <p class="file-upload-hint">รองรับ .pdf, .xlsx, .xls, .csv — ขนาดไม่เกิน 5 MB</p>
+                <div id="deviceListPreview" style="display:none;"></div>
+              </div>
+
+              <button class="btn-submit" id="btnSubmitInquiry" onclick="submitInquiry()">ส่งข้อมูลเพื่อขอรับใบเสนอราคา</button>
+            </div>
+
+            <div id="formSuccess" style="display:none;text-align:center;padding:3rem 0;">
+              <h3 style="font-size:2.2rem;color:var(--primary);margin-bottom:1.2rem;">ส่งข้อมูลสำเร็จ!</h3>
+              <p style="color:var(--text-muted);font-size:1.1rem;">ทีมงานจะส่ง<strong>ใบเสนอราคาไปยังอีเมลของคุณ</strong>ภายใน 1 วันทำการ ขอบคุณครับ</p>
+              <button class="btn-back dark" style="margin:1.5rem auto 0;display:inline-flex;" onclick="showContactView('landing')">&#8592; กลับหน้าหลัก</button>
+            </div>
+          </div><!-- /form-view-wrap -->
+        </div><!-- /contactFormView -->
+
+        <!-- =================== ADMIN VIEW =================== -->
+        <div id="contactAdminView" style="display:none">
+          <div class="admin-premium-wrap">
+            <!-- Header row -->
+            <div class="admin-head-row">
+              <div>
+                <button class="btn-back dark" onclick="showContactView('landing')">&#8592; ย้อนกลับ</button>
+                <h3 class="admin-premium-title">ส่งข้อมูลผ่านทีมงาน GEARUP</h3>
+                <div class="admin-rule-gold"></div>
+                <p class="admin-premium-desc">ส่งรายละเอียดองค์กรและจำนวนอุปกรณ์ผ่านช่องทางด้านล่าง ทีมงานจะดูแลทุกขั้นตอนให้ ตั้งแต่ลงทะเบียนจนถึงรายงาน ESG ฉบับสมบูรณ์</p>
+              </div>
+              <span class="premium-badge">Full Service</span>
+            </div>
+
+            <!-- Channel cards -->
+            <div class="channel-grid">
+              <a href="https://line.me/ti/p/~@gearup" class="channel-card-new" target="_blank">
+                <div class="ch-icon ch-icon-line">💬</div>
+                <div>
+                  <div class="ch-label">LINE Official</div>
+                  <div class="ch-val">@gearup</div>
+                  <div class="ch-cta">แชทได้เลย →</div>
+                </div>
+              </a>
+              <a href="mailto:info@gearup.com" class="channel-card-new">
+                <div class="ch-icon ch-icon-email">✉️</div>
+                <div>
+                  <div class="ch-label">อีเมล</div>
+                  <div class="ch-val">info@gearup.com</div>
+                  <div class="ch-cta">ส่งอีเมลหาเรา →</div>
+                </div>
+              </a>
+            </div>
+
+            <!-- Process + Status panels -->
+            <div class="admin-content-row">
+              <div class="process-panel">
+                <div class="panel-lbl">ทีมงานดูแลให้ครบ</div>
+                <div class="proc-step">
+                  <div class="proc-num">1</div>
+                  <div>
+                    <div class="proc-step-title">รับข้อมูลและออกใบเสนอราคา</div>
+                    <div class="proc-step-sub">ส่งใบเสนอราคาทางอีเมลภายใน 1 วันทำการ</div>
+                  </div>
+                </div>
+                <div class="proc-step">
+                  <div class="proc-num">2</div>
+                  <div>
+                    <div class="proc-step-title">ลงทะเบียนและจัดสรรโรงเรียน</div>
+                    <div class="proc-step-sub">บันทึกข้อมูลเข้าระบบและจับคู่โรงเรียน</div>
+                  </div>
+                </div>
+                <div class="proc-step">
+                  <div class="proc-num">3</div>
+                  <div>
+                    <div class="proc-step-title">ดำเนินการขนส่งและติดตั้ง</div>
+                    <div class="proc-step-sub">ประสานงาน ขนส่ง ติดตั้งซอฟต์แวร์ลิขสิทธิ์</div>
+                  </div>
+                </div>
+                <div class="proc-step">
+                  <div class="proc-num">4</div>
+                  <div>
+                    <div class="proc-step-title">ส่งมอบรายงาน ESG</div>
+                    <div class="proc-step-sub">รายงานสมบูรณ์พร้อมเกียรติบัตร Carbon Credit</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="status-panel">
+                <div class="panel-lbl">สถานะที่แอดมินติดตามในระบบ</div>
+                <div class="status-row"><div class="st-dot" style="background:#f39c12"></div><div class="st-label">อยู่ระหว่างพิจารณา</div></div>
+                <div class="status-row"><div class="st-dot" style="background:#3498db"></div><div class="st-label">ส่งใบเสนอราคาแล้ว</div></div>
+                <div class="status-row"><div class="st-dot" style="background:#27ae60"></div><div class="st-label">ชำระเงินแล้ว</div></div>
+                <div class="status-row"><div class="st-dot" style="background:#9b59b6"></div><div class="st-label">อยู่ระหว่างดำเนินการ</div></div>
+                <div class="status-row"><div class="st-dot" style="background:var(--accent)"></div><div class="st-label">เสร็จสิ้น / ระบุวันสิ้นสุดสัญญา</div></div>
+              </div>
+            </div>
+
+            <!-- Note strip -->
+            <div class="admin-strip">
+              <div class="strip-ico">💡</div>
+              <div class="strip-txt">หลังติดต่อทีมงาน เราจะส่ง<strong>ใบเสนอราคาทางอีเมล</strong> — เมื่อชำระเงินแล้วแอดมินจะอัปเดตสถานะและระบุ<strong>วันสิ้นสุดสัญญา</strong>ในระบบให้ทันที</div>
+            </div>
+          </div><!-- /admin-premium-wrap -->
+        </div><!-- /contactAdminView -->
+
+      </div><!-- /contact-card -->
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-main">
+          <div class="footer-logo">GEARUP</div>
+          <p class="footer-text">บริหารจัดการการบริจาคอุปกรณ์ไอทีอย่างมืออาชีพ เพื่อความเท่าเทียมทางการศึกษาและรายงาน ESG ที่ตรวจสอบได้จริง</p>
+          <p style="color: var(--accent); font-weight: 700; font-size: 1.2rem;">info@gearup.com | 064-335-2325</p>
+        </div>
+        <div class="footer-col">
+          <h5>เมนูหลัก</h5>
+          <ul class="footer-links">
+            <li><a href="#why">ทำไมต้องเรา</a></li>
+            <li><a href="#schools">โรงเรียน</a></li>
+            <li><a href="#packages">แพ็คเกจองค์กร</a></li>
+            <li><a href="#process">ขั้นตอน</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h5>ติดตามเรา</h5>
+          <ul class="footer-links">
+            <li><a href="#">Facebook</a></li>
+            <li><a href="#">LinkedIn</a></li>
+            <li><a href="#">Line Official</a></li>
+            <li><a href="#">Instagram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        © 2026 GEARUP. Sustainable Technology for All. | ขับเคลื่อนอนาคตที่ยั่งยืนด้วยเทคโนโลยี
+      </div>
+    </div>
+  </footer>
+
+  <div id="notification"></div>
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    AOS.init({ duration: 1000, once: true, offset: 100 });
+
+    const SUPABASE_URL = 'https://wavhxkawlzeyhtthffhs.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indhdmh4a2F3bHpleWh0dGhmZmhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNzU3NTEsImV4cCI6MjA4NjY1MTc1MX0.NERS8pASDTG2UkgMylMLDPSu6NkNFIec_FAYD6LtTtU';
+    let supabaseClient = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const authOptions = { detectSessionInUrl: false, persistSession: true, autoRefreshToken: true };
+        if (location.protocol === 'file:') {
+          authOptions.lock = async (name, acquireConfig, fn) => fn();
+        }
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: authOptions });
+      } catch(e) { 
+        console.error('Supabase init failed:', e);
+        const grid = document.getElementById('schoolsGrid');
+        if (grid) grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1; padding: 3rem; color: #d32f2f;">ไม่สามารถเชื่อมต่อระบบฐานข้อมูลได้ (Offline Mode)</p>';
+      }
+      loadSchools();
+      loadDashboardStats();
+      corInitProvinces();
+    });
+
+    async function loadDashboardStats() {
+      if (!supabaseClient) return;
+      try {
+        const [itemsRes, schoolsRes] = await Promise.all([
+          supabaseClient.from('donation_items').select('carbon_saved, device_weight'),
+          supabaseClient.from('requests').select('id').eq('is_public_post', true)
+        ]);
+        let totalCarbon = 0, totalWeight = 0, totalItems = 0;
+        if (itemsRes.data) {
+          itemsRes.data.forEach(r => {
+            totalCarbon += parseFloat(r.carbon_saved) || 0;
+            totalWeight += parseFloat(r.device_weight) || 0;
+            totalItems++;
+          });
+        }
+        const schools = schoolsRes.data?.length || 0;
+        document.getElementById('dashItems').textContent = totalItems.toLocaleString();
+        document.getElementById('dashCarbon').textContent = (totalCarbon / 1000).toFixed(1) + 'K';
+        document.getElementById('dashSchools').textContent = schools;
+        document.getElementById('dashWeight').textContent = (totalWeight / 1000).toFixed(1);
+      } catch(e) { console.error(e); }
+    }
+
+    const REQ_SPEC_LABELS = { any: 'ยอมรับทุกสเปก', basic: 'พื้นฐาน', standard: 'มาตรฐาน', high: 'สูง' };
+    const REQ_SPEC_DETAIL = {
+      'คอมพิวเตอร์': { basic: 'Core i3 / AMD A6+, RAM 4GB+', standard: 'Core i5 / Ryzen 5, RAM 8GB+', high: 'Core i7 / Ryzen 7+, RAM 16GB+' },
+      'แล็ปท็อป':    { basic: 'Core i3 / Ryzen 3, RAM 4GB+, SSD/HDD', standard: 'Core i5 / Ryzen 5, RAM 8GB+, SSD', high: 'Core i7 / Ryzen 7+, RAM 16GB+, SSD' },
+      'แท็บเล็ต':    { basic: '32GB, RAM 2GB+', standard: '64GB, RAM 3GB+', high: '128GB+, RAM 4GB+' },
+      'โทรศัพท์มือถือ': { basic: '32GB, RAM 2GB+', standard: '64GB, RAM 3GB+', high: '128GB+, RAM 4GB+' },
+    };
+
+    function getSpecLabel(type, spec, specLabel) {
+      if (specLabel) return specLabel;
+      if (!spec || spec === 'any') return 'ยอมรับทุกสเปก';
+      const detail = REQ_SPEC_DETAIL[type]?.[spec];
+      const tierName = REQ_SPEC_LABELS[spec] || spec;
+      return detail ? `${tierName} (${detail})` : tierName;
+    }
+
+    function renderSpecNotice(post) {
+      const notice = document.getElementById('specNotice');
+      if (!notice) return;
+
+      let detail = null;
+      try { detail = JSON.parse(post.equipment_detail || 'null'); } catch (_) {}
+
+      if (!detail || !Array.isArray(detail) || detail.length === 0) {
+        // Fallback: show combined equipment_type + quantity only
+        if (post.equipment_type && post.quantity) {
+          notice.innerHTML = `
+            <div class="spec-notice-box">
+              <div class="spec-notice-header">⚠️ ข้อกำหนดอุปกรณ์ — ${post.project_name || post.contact_name}</div>
+              <p class="spec-notice-sub">ต้องการ <strong>${getEquipLabels(post.equipment_type)}</strong> จำนวน <strong>${post.quantity} เครื่อง</strong> — กรุณาติดต่อทีมงานสำหรับรายละเอียดสเปก</p>
+            </div>`;
+        } else {
+          notice.innerHTML = '';
+        }
+        return;
+      }
+
+      const rows = detail.map(d => {
+        const specText = getSpecLabel(d.type, d.spec, d.spec_label);
+        const cond = d.condition && d.condition !== 'ยอมรับทุกสภาพ' ? d.condition : null;
+        return `
+          <div class="spec-row">
+            <span class="spec-device-name">📦 ${d.type}</span>
+            <span class="spec-chip">📐 สเปกขั้นต่ำ: <strong>${specText}</strong></span>
+            ${cond ? `<span class="spec-chip">🔧 สภาพ: <strong>${cond}</strong></span>` : ''}
+            <span class="spec-chip">🔢 ต้องการ: <strong>${d.quantity || '?'} เครื่อง</strong></span>
+            ${d.detail ? `<span class="spec-chip" style="color:var(--text-muted);">📝 ${d.detail}</span>` : ''}
+          </div>`;
+      }).join('');
+
+      notice.innerHTML = `
+        <div class="spec-notice-box">
+          <div class="spec-notice-header">⚠️ ข้อกำหนดขั้นต่ำสำหรับ "${post.project_name || post.contact_name}"</div>
+          <p class="spec-notice-sub">กรุณาตรวจสอบให้อุปกรณ์ที่บริจาคตรงตามข้อกำหนดด้านล่าง — ข้อมูลนี้จะถูกรวมในไฟล์ Excel เมื่อดาวน์โหลดแบบฟอร์ม</p>
+          <div class="spec-rows">${rows}</div>
+        </div>`;
+    }
+
+    const EQUIP_TYPE_TO_KEY = {
+      'คอมพิวเตอร์': 'Computer', 'Computer': 'Computer',
+      'แล็ปท็อป': 'Laptop',     'Laptop': 'Laptop',
+      'แท็บเล็ต': 'Tablet',     'Tablet': 'Tablet',
+      'โทรศัพท์': 'Phone',      'Phone': 'Phone',
+      'โทรศัพท์มือถือ': 'Phone'
+    };
+
+    function getEquipLabels(val) {
+      if (!val) return '';
+      const labels = { 'คอมพิวเตอร์': 'คอมพิวเตอร์', 'แล็ปท็อป': 'แล็ปท็อป', 'แท็บเล็ต': 'แท็บเล็ต', 'โทรศัพท์มือถือ': 'โทรศัพท์', 'Computer': 'คอมพิวเตอร์', 'Laptop': 'แล็ปท็อป', 'Tablet': 'แท็บเล็ต', 'Phone': 'โทรศัพท์' };
+      return val.split(',').map(v => labels[v.trim()] || v.trim()).filter(Boolean).join(', ');
+    }
+
+    function toggleOverview(btn) {
+      const text = btn.previousElementSibling;
+      if (!text) return;
+      const isExp = text.classList.toggle('expanded');
+      btn.textContent = isExp ? '▲ ย่อ' : '▼ อ่านเพิ่มเติม';
+    }
+
+    let _schoolsData = [];
+
+    function corInitProvinces() {
+      const sel = document.getElementById('inqProvince');
+      if (!sel || typeof THAI_SUBDISTRICT_MAP === 'undefined') return;
+      const provinces = Object.keys(THAI_SUBDISTRICT_MAP).sort();
+      provinces.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p; opt.textContent = p;
+        sel.appendChild(opt);
+      });
+    }
+
+    function corOnProvinceChange() {
+      const province = document.getElementById('inqProvince').value;
+      const distSel = document.getElementById('inqDistrict');
+      const subSel = document.getElementById('inqSubdistrict');
+      distSel.innerHTML = '<option value="">-- เลือกอำเภอ --</option>';
+      subSel.innerHTML = '<option value="">-- เลือกตำบล --</option>';
+      distSel.disabled = !province;
+      subSel.disabled = true;
+      if (!province || typeof THAI_SUBDISTRICT_MAP === 'undefined') return;
+      Object.keys(THAI_SUBDISTRICT_MAP[province] || {}).sort().forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d; opt.textContent = d;
+        distSel.appendChild(opt);
+      });
+    }
+
+    function corOnDistrictChange() {
+      const province = document.getElementById('inqProvince').value;
+      const district = document.getElementById('inqDistrict').value;
+      const subSel = document.getElementById('inqSubdistrict');
+      subSel.innerHTML = '<option value="">-- เลือกตำบล --</option>';
+      subSel.disabled = !district;
+      if (!province || !district || typeof THAI_SUBDISTRICT_MAP === 'undefined') return;
+      (THAI_SUBDISTRICT_MAP[province]?.[district] || []).forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        subSel.appendChild(opt);
+      });
+      if (typeof THAI_ADDRESS_DB !== 'undefined') {
+        const entry = THAI_ADDRESS_DB.find(r => r[0] === district && r[1] === province);
+        document.getElementById('inqPostalCode').value = entry ? entry[2] : '';
+      }
+    }
+
+    async function loadSchools() {
+      const grid = document.getElementById('schoolsGrid');
+      if (!supabaseClient) {
+        if (grid) grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1; padding: 3rem; color: #d32f2f;">ไม่สามารถเชื่อมต่อระบบฐานข้อมูลได้</p>';
+        return;
+      }
+      try {
+        const { data: posts, error } = await supabaseClient
+          .from('requests')
+          .select('*')
+          .eq('is_public_post', true)
+          .in('fulfillment_status', ['open', 'partially_fulfilled'])
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        _schoolsData = posts || [];
+        if (_schoolsData.length === 0) {
+          grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1; font-size: 1.2rem; padding: 3rem;">ไม่มีโครงการที่เปิดรับในขณะนี้</p>';
+          return;
+        }
+
+        // Count linked donations per request (per device type)
+        const postIds = posts.map(p => p.id);
+        let donationCounts = {};
+        let receivedByType = {};
+        try {
+          const { data: linked } = await supabaseClient
+            .from('donations')
+            .select('id, direct_donation_to_request_id, total_items')
+            .in('direct_donation_to_request_id', postIds);
+          if (linked && linked.length > 0) {
+            const donIdToReqId = {};
+            linked.forEach(d => { donIdToReqId[d.id] = d.direct_donation_to_request_id; });
+            const { data: items } = await supabaseClient
+              .from('donation_items')
+              .select('donation_id, device_type')
+              .in('donation_id', linked.map(d => d.id));
+            if (items && items.length > 0) {
+              items.forEach(item => {
+                const rid = donIdToReqId[item.donation_id];
+                if (!rid) return;
+                if (!receivedByType[rid]) receivedByType[rid] = {};
+                receivedByType[rid][item.device_type] = (receivedByType[rid][item.device_type] || 0) + 1;
+              });
+              Object.entries(receivedByType).forEach(([rid, map]) => {
+                donationCounts[rid] = Object.values(map).reduce((s, n) => s + n, 0);
+              });
+            } else {
+              linked.forEach(d => {
+                const rid = d.direct_donation_to_request_id;
+                donationCounts[rid] = (donationCounts[rid] || 0) + (d.total_items || 1);
+              });
+            }
+          }
+        } catch (e) { console.warn('Could not count linked donations:', e); }
+
+        const orgTypeLabels = { 'school': 'โรงเรียน', 'foundation': 'มูลนิธิ' };
+        const EQUIP_ICONS = { 'คอมพิวเตอร์': '🖥️', 'แล็ปท็อป': '💻', 'แท็บเล็ต': '📱', 'โทรศัพท์มือถือ': '📱' };
+        const FALLBACK_IMG = 'https://images.unsplash.com/photo-1588072432836-e10032774350?w=600&h=300&fit=crop';
+        const isImageUrl = (url) => url && /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url);
+
+        grid.innerHTML = posts.map(post => {
+          const requested = post.quantity || 0;
+          const received = post.quantity_received || donationCounts[post.id] || 0;
+          const percent = requested > 0 ? Math.min(100, Math.round((received / requested) * 100)) : 0;
+          const remaining = Math.max(0, requested - received);
+
+          const postReceivedByType = receivedByType[post.id] || {};
+          let perDeviceRows = '';
+          try {
+            const detail = JSON.parse(post.equipment_detail || '');
+            if (Array.isArray(detail) && detail.length > 0) {
+              perDeviceRows = detail.map(d => {
+                const icon = EQUIP_ICONS[d.type] || '📦';
+                const qty = d.quantity || 0;
+                const deviceKey = EQUIP_TYPE_TO_KEY[d.type] || d.type;
+                const recv = postReceivedByType[deviceKey] || 0;
+                const done = recv >= qty && qty > 0;
+                return `<div class="post-device-row">
+                  <span class="post-device-type">${icon} ${d.type}</span>
+                  <span class="post-device-qty ${done ? 'post-device-qty-done' : recv > 0 ? 'post-device-qty-partial' : ''}">${recv}/${qty} เครื่อง</span>
+                </div>`;
+              }).join('');
+            }
+          } catch (_) {}
+
+          if (!perDeviceRows) {
+            const equipLabel = getEquipLabels(post.equipment_type);
+            const totalRecv = donationCounts[post.id] || 0;
+            const done = totalRecv >= requested && requested > 0;
+            perDeviceRows = `<div class="post-device-row">
+              <span class="post-device-type">📦 ${equipLabel || 'อุปกรณ์ไอที'}</span>
+              <span class="post-device-qty ${done ? 'post-device-qty-done' : totalRecv > 0 ? 'post-device-qty-partial' : ''}">${totalRecv}/${requested} เครื่อง</span>
+            </div>`;
+          }
+
+          const postImg = post.post_image_url || (isImageUrl(post.document_url) ? post.document_url : FALLBACK_IMG);
+
+          return `
+            <div class="request-post-card" data-request-id="${post.id}" data-aos="fade-up">
+              <div class="post-image">
+                <img src="${postImg}" alt="${(post.project_name || '').replace(/"/g, '')}" loading="lazy">
+                <div class="post-badge">${orgTypeLabels[post.org_type] || post.org_type || 'โครงการ'}</div>
+              </div>
+              <div class="post-content">
+                <div class="post-title">${post.project_name || post.contact_name || 'โครงการสนับสนุน'}</div>
+                <div class="post-contact">👤 ${post.contact_name || ''}</div>
+                <div class="post-overview-wrap">
+                  <div class="post-overview-text" data-full="${(post.project_overview || '').replace(/"/g, '&quot;')}">${post.project_overview || 'ร่วมสนับสนุนอุปกรณ์ไอทีเพื่ออนาคตของเด็กนักเรียนไทย'}</div>
+                  <button class="post-read-more" onclick="toggleOverview(this)">▼ อ่านเพิ่มเติม</button>
+                </div>
+                <hr class="post-divider">
+                <div class="post-device-table">${perDeviceRows}</div>
+                <div class="post-progress-section">
+                  <div class="post-progress-bar-wrap">
+                    <div class="progress-bar-track">
+                      <div class="progress-bar-fill ${percent >= 100 ? 'complete' : ''}" style="width:${percent}%"></div>
+                    </div>
+                    <span class="post-progress-percent">${percent}%</span>
+                  </div>
+                  <div class="post-progress-detail">
+                    ${received > 0 ? `ได้รับแล้ว ${received} จาก ${requested} เครื่อง` : 'ยังไม่มีผู้บริจาค · ยังต้องการอีก ' + remaining + ' เครื่อง'}
+                    ${received > 0 ? (remaining > 0 ? ` · ยังต้องการอีก <strong>${remaining}</strong> เครื่อง` : ' · <span style="color:#2f5233">✅ ครบแล้ว</span>') : ''}
+                  </div>
+                </div>
+                <button class="btn-donate-direct" onclick="selectSchool('${post.id}')">บริจาคให้องค์กรนี้</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Show "read more" for overflowing descriptions
+        grid.querySelectorAll('.post-overview-text').forEach(el => {
+          if (el.scrollHeight > el.clientHeight + 2) {
+            el.nextElementSibling?.style && (el.nextElementSibling.style.display = 'inline-block');
+          }
+        });
+
+        // Limit to 9 cards (3 rows × 3 cols); show "ดูเพิ่มเติม" if more
+        const INITIAL_LIMIT = 9;
+        const actionArea = document.getElementById('schoolsActionArea');
+        if (posts.length > INITIAL_LIMIT) {
+          const cards = grid.querySelectorAll('.request-post-card');
+          cards.forEach((card, i) => { if (i >= INITIAL_LIMIT) card.style.display = 'none'; });
+          if (actionArea) {
+            actionArea.innerHTML = `<button onclick="showAllSchools()" style="padding:0.75rem 2.2rem;border:2px solid var(--primary);color:var(--primary);background:transparent;border-radius:10px;cursor:pointer;font-size:1rem;font-family:'Crimson Text',serif;font-weight:700;transition:0.2s;" onmouseover="this.style.background='var(--primary)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--primary)'">ดูโครงการทั้งหมด (${posts.length - INITIAL_LIMIT} เพิ่มเติม)</button>`;
+          }
+        } else if (actionArea) {
+          actionArea.innerHTML = '';
+        }
+
+        populateDropdown(posts);
+      } catch(e) {
+        console.error(e);
+        grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+      }
+    }
+
+    function showAllSchools() {
+      const grid = document.getElementById('schoolsGrid');
+      if (grid) grid.querySelectorAll('.request-post-card').forEach(c => c.style.display = '');
+      const actionArea = document.getElementById('schoolsActionArea');
+      if (actionArea) actionArea.innerHTML = '';
+    }
+
+    function populateDropdown(data) {
+      const sel = document.getElementById('inqTargetSchool');
+      sel.innerHTML = '<option value="">— เลือกจากโครงการที่เปิดรับ —</option>';
+      data.forEach(r => {
+        const name = r.project_name || r.contact_name;
+        const opt = document.createElement('option');
+        opt.value = r.id;
+        opt.textContent = name;
+        sel.appendChild(opt);
+      });
+    }
+
+    function selectSchool(id) {
+      const p = _schoolsData.find(x => String(x.id) === String(id));
+      if (!p) return;
+
+      const name = p.project_name || p.contact_name;
+      document.getElementById('inqTargetRequestId').value = id;
+      document.getElementById('inqTargetSchool').value = id;
+      
+      const FALLBACK_IMG = 'https://images.unsplash.com/photo-1588072432836-e10032774350?w=600&h=300&fit=crop';
+      const isImageUrl = (url) => url && /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url);
+      const img = p.post_image_url || (isImageUrl(p.document_url) ? p.document_url : FALLBACK_IMG);
+      const province = p.address ? p.address.split(' ').find(w => w.startsWith('จังหวัด')) || '' : '';
+
+      const banner = document.getElementById('selectedSchoolBanner');
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div class="donation-target-banner">
+            <button class="btn-clear-target" onclick="clearSelectedSchool()">✕</button>
+            <div class="target-banner-img">
+                <img src="${img}" alt="${name}">
+                <span class="target-badge">${p.org_type || 'โครงการ'}</span>
+            </div>
+            <div class="target-banner-body">
+                <h3 class="target-title">${name}</h3>
+                ${p.project_overview ? `<p class="target-overview">${p.project_overview}</p>` : ''}
+                <div class="target-details">
+                    <div class="target-detail-item">
+                        <span>📍 ${p.address || '—'}</span>
+                    </div>
+                    <div class="target-detail-item">
+                        <span>📦 ต้องการ: <strong>${p.equipment_type || 'อุปกรณ์ไอที'}</strong> จำนวน <strong>${p.quantity || '?'} เครื่อง</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+      `;
+      
+      document.querySelectorAll('.btn-donate-direct').forEach(b => {
+        b.classList.remove('selected');
+        b.textContent = 'บริจาคให้องค์กรนี้';
+      });
+      const btn = document.querySelector(`[data-request-id="${id}"] .btn-donate-direct`);
+      if (btn) {
+        btn.classList.add('selected');
+        btn.textContent = '✓ เลือกเรียบร้อย';
+      }
+
+      renderSpecNotice(p);
+      document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function clearSelectedSchool() {
+      document.getElementById('inqTargetRequestId').value = '';
+      document.getElementById('inqTargetSchool').value = '';
+      document.getElementById('selectedSchoolBanner').style.display = 'none';
+      document.getElementById('selectedSchoolBanner').innerHTML = '';
+      const notice = document.getElementById('specNotice');
+      if (notice) notice.innerHTML = '';
+      document.querySelectorAll('.btn-donate-direct').forEach(b => {
+        b.classList.remove('selected');
+        b.textContent = 'บริจาคให้องค์กรนี้';
+      });
+    }
+
+    function onSchoolSelectChange() {
+      const val = document.getElementById('inqTargetSchool').value;
+      if (!val) { clearSelectedSchool(); return; }
+      selectSchool(val);
+    }
+
+    function setPackageInterest(pkg) {
+      setTimeout(() => { document.getElementById('inqPackage').value = pkg; }, 100);
+    }
+
+    function downloadDonationTemplate() {
+      const wb = XLSX.utils.book_new();
+
+      // Check if a school is selected
+      const selectedId = document.getElementById('inqTargetRequestId')?.value;
+      const school = selectedId ? _schoolsData.find(s => String(s.id) === String(selectedId)) : null;
+      const schoolName = school ? (school.project_name || school.contact_name) : null;
+
+      // --- Sheet 1: ข้อกำหนดโรงเรียน (only if school selected and has detail) ---
+      if (school) {
+        let detail = null;
+        try { detail = JSON.parse(school.equipment_detail || 'null'); } catch (_) {}
+
+        const reqRows = [];
+        reqRows.push([`ข้อกำหนดอุปกรณ์สำหรับโครงการ: ${schoolName}`]);
+        reqRows.push([`ผู้ติดต่อ: ${school.contact_name || '—'}   |   ที่อยู่: ${school.address || '—'}`]);
+        reqRows.push(['']);
+        reqRows.push(['ประเภทอุปกรณ์', 'จำนวนที่ต้องการ (เครื่อง)', 'สเปกขั้นต่ำ', 'สภาพขั้นต่ำ', 'รายละเอียดเพิ่มเติม']);
+
+        if (detail && Array.isArray(detail) && detail.length > 0) {
+          detail.forEach(d => {
+            reqRows.push([
+              d.type || '',
+              d.quantity || '',
+              getSpecLabel(d.type, d.spec, d.spec_label),
+              d.condition || 'ยอมรับทุกสภาพ',
+              d.detail || ''
+            ]);
+          });
+        } else {
+          reqRows.push([getEquipLabels(school.equipment_type) || 'อุปกรณ์ไอที', school.quantity || '', 'กรุณาติดต่อทีมงาน', 'ยอมรับทุกสภาพ', '']);
+        }
+        reqRows.push(['']);
+        reqRows.push(['*** กรุณากรอกรายการอุปกรณ์ใน Sheet "รายการอุปกรณ์" และตรวจสอบให้ตรงตามข้อกำหนดด้านบน ***']);
+
+        const reqWs = XLSX.utils.aoa_to_sheet(reqRows);
+        reqWs['!cols'] = [{wch:22},{wch:24},{wch:42},{wch:25},{wch:35}];
+        XLSX.utils.book_append_sheet(wb, reqWs, 'ข้อกำหนดโรงเรียน');
+      }
+
+      // --- Sheet 2: รายการอุปกรณ์ ---
+      const headerNote = schoolName
+        ? [`*** แบบฟอร์มรายการอุปกรณ์บริจาค — โครงการ: ${schoolName} ***`]
+        : [`*** แบบฟอร์มรายการอุปกรณ์บริจาค — GEARUP ***`];
+
+      const mainData = [
+        headerNote,
+        schoolName ? ['*** ดูข้อกำหนดสเปกของโรงเรียนได้ใน Sheet "ข้อกำหนดโรงเรียน" ***'] : [],
+        [''],
+        ['ลำดับ', 'ประเภทอุปกรณ์', 'ยี่ห้อ', 'รุ่น', 'Serial Number', 'สภาพ (ดี/พอใช้/ซ่อมได้)', 'น้ำหนัก (กก.)', 'หมายเหตุ'],
+        [1, 'คอมพิวเตอร์', 'Dell', 'OptiPlex 7060', 'SN001', 'ดี', 5.5, '(ตัวอย่าง — ลบแถวนี้ออก)'],
+        [2, 'แล็ปท็อป', 'Lenovo', 'ThinkPad T480', 'SN002', 'พอใช้', 1.8, '(ตัวอย่าง — ลบแถวนี้ออก)'],
+      ].filter(r => r.length > 0);
+
+      const ws = XLSX.utils.aoa_to_sheet(mainData);
+      ws['!cols'] = [{wch:6},{wch:18},{wch:14},{wch:20},{wch:18},{wch:24},{wch:14},{wch:35}];
+      XLSX.utils.book_append_sheet(wb, ws, 'รายการอุปกรณ์');
+
+      const filename = schoolName
+        ? `GEARUP-${schoolName.replace(/[/\\?%*:|"<>]/g, '-')}.xlsx`
+        : 'GEARUP-รายการอุปกรณ์บริจาค.xlsx';
+      XLSX.writeFile(wb, filename);
+    }
+
+    let _parsedDeviceList = null;
+
+    const CORP_TYPE_MAP = {
+      'คอมพิวเตอร์': 'Computer', 'คอม': 'Computer', 'computer': 'Computer', 'desktop': 'Computer',
+      'แล็ปท็อป': 'Laptop', 'โน้ตบุ๊ค': 'Laptop', 'โน้ตบุค': 'Laptop', 'laptop': 'Laptop', 'notebook': 'Laptop',
+      'แท็บเล็ต': 'Tablet', 'tablet': 'Tablet', 'ipad': 'Tablet',
+      'โทรศัพท์มือถือ': 'Phone', 'โทรศัพท์': 'Phone', 'มือถือ': 'Phone', 'phone': 'Phone', 'smartphone': 'Phone',
+    };
+    const CORP_CARBON = { Computer: 30, Laptop: 125, Tablet: 250, Phone: 300 };
+    const CORP_TYPE_TH = { Computer: 'คอมพิวเตอร์', Laptop: 'แล็ปท็อป', Tablet: 'แท็บเล็ต', Phone: 'โทรศัพท์มือถือ' };
+
+    function parseDeviceRows(rows) {
+      // Find header row containing "ประเภทอุปกรณ์"
+      let hi = -1;
+      for (let i = 0; i < Math.min(rows.length, 10); i++) {
+        if (rows[i].some(c => String(c).includes('ประเภทอุปกรณ์'))) { hi = i; break; }
+      }
+      if (hi === -1) return null;
+
+      const hdr = rows[hi].map(c => String(c).trim());
+      const col = k => hdr.findIndex(h => h.includes(k));
+      const idx = {
+        type: col('ประเภทอุปกรณ์'), brand: col('ยี่ห้อ'), model: col('รุ่น'),
+        serial: hdr.findIndex(h => h.toLowerCase().includes('serial')),
+        cond: col('สภาพ'), weight: col('น้ำหนัก'), notes: col('หมายเหตุ'),
+      };
+
+      const devices = [];
+      for (let i = hi + 1; i < rows.length; i++) {
+        const row = rows[i];
+        const rawType = idx.type >= 0 ? String(row[idx.type] || '').trim() : '';
+        if (!rawType || rawType.startsWith('*') || rawType.startsWith('(')) continue;
+        const typeKey = CORP_TYPE_MAP[rawType] || CORP_TYPE_MAP[rawType.toLowerCase()] || null;
+        if (!typeKey) continue;
+        const weight = parseFloat(row[idx.weight] || 0) || 0;
+        devices.push({
+          device_type: typeKey,
+          device_brand: idx.brand >= 0 ? String(row[idx.brand] || '').trim() : '',
+          device_model: idx.model >= 0 ? String(row[idx.model] || '').trim() : '',
+          serial_number: idx.serial >= 0 ? String(row[idx.serial] || '').trim() : '',
+          device_condition: idx.cond >= 0 ? String(row[idx.cond] || '').trim() : '',
+          device_weight: weight,
+          carbon_saved: parseFloat((weight * (CORP_CARBON[typeKey] || 30)).toFixed(2)),
+          notes: idx.notes >= 0 ? String(row[idx.notes] || '').trim() : '',
+        });
+      }
+      return devices.length > 0 ? devices : null;
+    }
+
+    function renderDevicePreview(devices) {
+      const el = document.getElementById('deviceListPreview');
+      if (!el) return;
+      if (!devices || devices.length === 0) { el.style.display = 'none'; return; }
+
+      // Summarize by type
+      const summary = {};
+      devices.forEach(d => {
+        const k = d.device_type;
+        if (!summary[k]) summary[k] = { count: 0, weight: 0 };
+        summary[k].count++;
+        summary[k].weight += d.device_weight;
+      });
+
+      const rows = Object.entries(summary).map(([k, v]) =>
+        `<tr><td>${CORP_TYPE_TH[k] || k}</td><td style="text-align:center;font-weight:700;color:var(--primary)">${v.count}</td><td style="text-align:center">${v.weight.toFixed(1)} กก.</td></tr>`
+      ).join('');
+
+      el.style.display = 'block';
+      el.innerHTML = `
+        <div style="background:#f0f7f0;border:1px solid #a5d6a7;border-radius:10px;padding:1rem 1.2rem;margin-top:0.8rem;">
+          <div style="font-weight:800;color:var(--primary);margin-bottom:0.6rem;">✅ อ่านข้อมูลสำเร็จ — ${devices.length} เครื่อง จะถูกบันทึกใน Database อัตโนมัติเมื่อส่งฟอร์ม</div>
+          <table style="width:100%;font-size:0.88rem;border-collapse:collapse;">
+            <thead><tr style="color:var(--text-muted)"><th style="text-align:left">ประเภท</th><th style="text-align:center">จำนวน</th><th style="text-align:center">น้ำหนักรวม</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+    }
+
+    function onAttachmentChange(input) {
+      const label = document.getElementById('attachmentLabel');
+      const preview = document.getElementById('deviceListPreview');
+      _parsedDeviceList = null;
+      if (preview) preview.style.display = 'none';
+
+      if (!input.files[0]) {
+        label.textContent = 'คลิกเพื่อแนบไฟล์ PDF หรือ Excel';
+        label.style.color = '';
+        return;
+      }
+      const f = input.files[0];
+      if (f.size > 5 * 1024 * 1024) {
+        showNotification('ไฟล์ขนาดเกิน 5 MB กรุณาเลือกไฟล์ใหม่', 'error');
+        input.value = '';
+        label.textContent = 'คลิกเพื่อแนบไฟล์ PDF หรือ Excel';
+        return;
+      }
+      const allowedTypes = ['application/pdf','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','text/csv'];
+      const allowedExts = /\.(pdf|xlsx|xls|csv)$/i;
+      if (!allowedTypes.includes(f.type) && !allowedExts.test(f.name)) {
+        showNotification('รองรับเฉพาะไฟล์ PDF, Excel (.xlsx/.xls) หรือ CSV เท่านั้น', 'error');
+        return;
+      }
+      label.textContent = '✓ ' + f.name + ' (' + (f.size / 1024).toFixed(0) + ' KB)';
+      label.style.color = 'var(--primary)';
+
+      // Parse Excel/CSV immediately
+      if (/\.(xlsx|xls|csv)$/i.test(f.name)) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          try {
+            const wb = XLSX.read(e.target.result, { type: 'binary' });
+            const wsName = wb.SheetNames.includes('รายการอุปกรณ์') ? 'รายการอุปกรณ์' : wb.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { header: 1, defval: '' });
+            _parsedDeviceList = parseDeviceRows(rows);
+            renderDevicePreview(_parsedDeviceList);
+            if (!_parsedDeviceList) showNotification('ไม่พบข้อมูลอุปกรณ์ในไฟล์ — กรุณาใช้แบบฟอร์มที่ดาวน์โหลด', 'error');
+          } catch (err) {
+            console.warn('Excel parse error:', err);
+            _parsedDeviceList = null;
+          }
+        };
+        reader.readAsBinaryString(f);
+      }
+    }
+
+    function showNotification(msg, type = 'success') {
+      const el = document.getElementById('notification');
+      el.textContent = msg;
+      el.className = type;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    }
+
+    function applyCorpPhoneHint(val) {
+      const el = document.getElementById('inqPhoneHint');
+      if (!el) return;
+      let msg = '';
+      if (val && val[0] !== '0') msg = 'เบอร์โทรศัพท์ต้องขึ้นต้นด้วย 0';
+      else if (val && val.length < 9) msg = `กรอกยังไม่ครบ (${val.length}/9-10 หลัก)`;
+      el.textContent = msg;
+      el.style.color = msg ? '#e03131' : 'transparent';
+    }
+
+    function toggleAddonInput(type) {
+        const cb = document.getElementById('addon' + type);
+        const inp = document.getElementById('addon' + type + 'Input');
+        if (!inp) return;
+        inp.style.display = cb.checked ? 'flex' : 'none';
+    }
+
+    function showContactView(view) {
+      document.getElementById('contactLanding').style.display = view === 'landing' ? '' : 'none';
+      document.getElementById('contactFormView').style.display = view === 'form' ? '' : 'none';
+      document.getElementById('contactAdminView').style.display = view === 'admin' ? '' : 'none';
+      window.scrollTo({ top: document.getElementById('contact').offsetTop - 80, behavior: 'smooth' });
+    }
+
+    let _corpSchoolMode = 'single';
+
+    function setSchoolMode(mode, btn) {
+      _corpSchoolMode = mode;
+      document.querySelectorAll('.school-mode-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      document.getElementById('schoolModeSingle').style.display = mode === 'single' ? '' : 'none';
+      document.getElementById('schoolModeMulti').style.display = mode === 'multi' ? '' : 'none';
+      document.getElementById('schoolModeNone').style.display = mode === 'none' ? '' : 'none';
+      if (mode === 'multi' && document.getElementById('multiSchoolBody').children.length === 0) {
+        addSchoolRow();
+      }
+    }
+
+    function addSchoolRow() {
+      const tbody = document.getElementById('multiSchoolBody');
+      const options = (_schoolsData || []).map(s =>
+        `<option value="${s.id}">${s.project_name || s.contact_name || s.id}</option>`
+      ).join('');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><select class="school-multi-sel"><option value="">-- เลือกโรงเรียน --</option>${options}</select></td>
+        <td><input type="number" class="school-multi-qty" placeholder="10" min="1"></td>
+        <td><button type="button" class="btn-rm-school" onclick="this.closest('tr').remove()">✕</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    async function submitInquiry() {
+      const orgName = document.getElementById('inqOrgName').value.trim();
+      const contact = document.getElementById('inqContactName').value.trim();
+      const taxId = document.getElementById('inqTaxId').value.trim();
+      const email = document.getElementById('inqEmail').value.trim();
+      const phone = document.getElementById('inqPhone').value.trim();
+      const pkg = document.getElementById('inqPackage').value;
+      const msg = document.getElementById('inqMessage').value.trim();
+      const addrLine = document.getElementById('inqAddrLine').value.trim();
+      const province = document.getElementById('inqProvince').value;
+      const district = document.getElementById('inqDistrict').value;
+      const subdistrict = document.getElementById('inqSubdistrict').value;
+      const postalCode = document.getElementById('inqPostalCode').value.trim();
+      const addrParts = [addrLine, subdistrict, district, province, postalCode].filter(Boolean);
+      const contactAddress = addrParts.length > 0 ? addrParts.join(' ') : null;
+      const selectedRequestId = document.getElementById('inqTargetRequestId').value;
+      if (!orgName || !contact || !email || !phone) {
+        showNotification('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน', 'error');
+        return;
+      }
+      const _emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !_emailRx.test(email)) {
+          showNotification('กรุณากรอกอีเมลให้ถูกต้อง', 'error');
+          return;
+      }
+      if (phone && !/^0\d{9}$/.test(phone.replace(/[-\s]/g, ''))) {
+          showNotification('กรุณากรอกเบอร์โทร 10 หลัก ขึ้นต้นด้วย 0', 'error');
+          return;
+      }
+      if (_corpSchoolMode === 'single' && !selectedRequestId) {
+        showNotification('กรุณาเลือกโครงการโรงเรียนที่ต้องการสนับสนุน หรือเปลี่ยนเป็น "ยังไม่ระบุ"', 'error');
+        document.getElementById('inqTargetSchool').focus();
+        return;
+      }
+      if (_corpSchoolMode === 'multi') {
+        const rows = document.querySelectorAll('#multiSchoolBody tr');
+        if (rows.length === 0) { showNotification('กรุณาเพิ่มอย่างน้อย 1 โรงเรียน', 'error'); return; }
+        const multiRows = Array.from(rows);
+        for (const row of multiRows) {
+            const sel = row.querySelector('.school-multi-sel')?.value;
+            const qty = parseInt(row.querySelector('.school-multi-qty')?.value);
+            if (!sel) { showNotification('กรุณาเลือกโรงเรียนในทุกแถว', 'error'); return; }
+            if (!qty || qty < 1) { showNotification('จำนวนเครื่องต้องมากกว่า 0', 'error'); return; }
+        }
+      }
+      if (taxId && taxId.length !== 13) {
+        showNotification('เลขประจำตัวผู้เสียภาษีต้องมี 13 หลัก', 'error');
+        return;
+      }
+      const btn = document.getElementById('btnSubmitInquiry');
+      btn.disabled = true;
+      btn.textContent = 'กำลังส่งข้อมูล...';
+      try {
+        // Read attachment as base64 if provided
+        let attachmentUrl = null;
+        const fileInput = document.getElementById('inqAttachment');
+        if (fileInput.files[0]) {
+          const file = fileInput.files[0];
+          attachmentUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result + '||' + file.name);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        }
+
+        // Collect add-on selections with quantities
+        const addonLabels = [];
+        if (document.getElementById('addonPR')?.checked) {
+            const months = parseInt(document.getElementById('addonPRMonths')?.value) || 1;
+            addonLabels.push(`เพิ่มพื้นที่ประชาสัมพันธ์ ${months} เดือน`);
+        }
+        if (document.getElementById('addonMS')?.checked) {
+            const devices = parseInt(document.getElementById('addonMSDevices')?.value) || 1;
+            addonLabels.push(`ติดตั้ง MS License ${devices} เครื่อง`);
+        }
+        const addonSuffix = addonLabels.length > 0 ? `\n[Add-ons: ${addonLabels.join(', ')}]` : '';
+
+        let schoolLine = '';
+        let totalDeviceCount = _parsedDeviceList ? _parsedDeviceList.length : null;
+        if (_corpSchoolMode === 'single') {
+          const post = selectedRequestId ? _schoolsData.find(x => String(x.id) === String(selectedRequestId)) : null;
+          schoolLine = post ? `โรงเรียนที่เลือก: ${post.project_name || post.contact_name || selectedRequestId} (ID:${selectedRequestId})` : '';
+        } else if (_corpSchoolMode === 'multi') {
+          const rows = document.querySelectorAll('#multiSchoolBody tr');
+          const lines = [];
+          let multiTotal = 0;
+          rows.forEach(tr => {
+            const sel = tr.querySelector('.school-multi-sel');
+            const qty = tr.querySelector('.school-multi-qty');
+            const schoolId = sel ? sel.value : '';
+            const qtyVal = qty ? (parseInt(qty.value) || 0) : 0;
+            if (schoolId) {
+              const post = _schoolsData.find(x => String(x.id) === String(schoolId));
+              const name = post ? (post.project_name || post.contact_name || schoolId) : schoolId;
+              lines.push(`  - ${name}: ${qtyVal} เครื่อง`);
+              multiTotal += qtyVal;
+            }
+          });
+          if (lines.length) schoolLine = `แบ่งบริจาคหลายโรงเรียน (รวม ${multiTotal} เครื่อง):\n${lines.join('\n')}`;
+          if (multiTotal > 0 && !totalDeviceCount) totalDeviceCount = multiTotal;
+        } else {
+          schoolLine = 'ยังไม่ระบุโรงเรียนปลายทาง — ขอให้ทีมงานแนะนำ';
+        }
+        const fullMessage = [schoolLine, msg].filter(Boolean).join('\n') + addonSuffix;
+
+        const { error } = await supabaseClient.from('corporate_inquiries').insert({
+          org_name: orgName,
+          contact_name: contact,
+          tax_id: taxId || null,
+          contact_email: email,
+          contact_phone: phone,
+          package_interest: pkg || null,
+          message: fullMessage || null,
+          contact_address: contactAddress,
+          attachment_url: attachmentUrl,
+          device_list: _parsedDeviceList || null
+        });
+        if (error) throw error;
+        document.getElementById('formContent').style.display = 'none';
+        document.getElementById('formSuccess').style.display = 'block';
+        window.scrollTo({ top: document.getElementById('contact').offsetTop - 100, behavior: 'smooth' });
+      } catch (err) {
+        console.error(err);
+        showNotification('เกิดข้อผิดพลาดในการส่งข้อมูล', 'error');
+        btn.disabled = false;
+        btn.textContent = 'ส่งข้อมูลเพื่อขอรับใบเสนอราคา';
+      }
+    }
+  </script>
+</body>
+</html>

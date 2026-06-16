@@ -1,0 +1,2181 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GEARUP Admin — ระบบจัดการ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Crimson+Text:wght@400;600&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #2f5233;
+      --primary-light: #3d6b42;
+      --secondary: #8b7355;
+      --accent: #d4a574;
+      --bg: #f8f6f3;
+      --dark: #1a2421;
+      --dark-hover: rgba(255,255,255,0.08);
+      --white: #ffffff;
+      --border: #e2ddd8;
+      --text: #2d2d2d;
+      --text-muted: #6b7280;
+      --sidebar-width: 260px;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+    }
+
+    body {
+      font-family: 'Crimson Text', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ========== LOGIN SCREEN ========== */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 100%);
+      padding: 1rem;
+    }
+
+    .login-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .login-logo img {
+      height: 56px;
+      object-fit: contain;
+    }
+
+    .login-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--dark);
+      text-align: center;
+      margin-bottom: 0.25rem;
+    }
+
+    .login-subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Crimson Text', serif;
+      font-size: 1rem;
+      color: var(--text);
+      transition: border-color 0.2s;
+      background: var(--white);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(47,82,51,0.12);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Crimson Text', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:active { transform: translateY(1px); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    .btn-primary:hover { background: var(--primary-light); }
+
+    .btn-danger {
+      background: var(--danger);
+      color: var(--white);
+    }
+
+    .btn-danger:hover { background: var(--danger-hover); }
+
+    .btn-secondary {
+      background: var(--secondary);
+      color: var(--white);
+    }
+
+    .btn-secondary:hover { background: #7a6448; }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+    }
+
+    .btn-outline:hover { background: rgba(47,82,51,0.06); }
+
+    .btn-sm {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.875rem;
+    }
+
+    .btn-full { width: 100%; }
+
+    /* Uniform action buttons in table rows */
+    .btn-act {
+      padding: 0.28rem 0.65rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: inherit;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.13s, border-color 0.13s;
+      border: 1px solid #d5dfd6;
+      background: #f5f7f5;
+      color: #444;
+    }
+    .btn-act:hover { background: #e8ede8; }
+
+    /* Green — approve / verify / create */
+    .btn-act-green { background: #2f5233; color: #fff; border-color: #2f5233; }
+    .btn-act-green:hover { background: #3d6b42; border-color: #3d6b42; }
+
+    /* Blue — update status (outline) */
+    .btn-act-blue { background: #eff6ff; color: #1d4ed8; border-color: #93c5fd; }
+    .btn-act-blue:hover { background: #dbeafe; border-color: #3b82f6; }
+
+    /* Amber — toggle show/hide */
+    .btn-act-amber { background: #d97706; color: #fff; border-color: #d97706; }
+    .btn-act-amber:hover { background: #b45309; border-color: #b45309; }
+
+    /* Teal — quotation / document */
+    .btn-act-teal { background: #0d9488; color: #fff; border-color: #0d9488; }
+    .btn-act-teal:hover { background: #0f766e; border-color: #0f766e; }
+
+    /* Purple — ESG report */
+    .btn-act-purple { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+    .btn-act-purple:hover { background: #6d28d9; border-color: #6d28d9; }
+
+    /* Red — delete */
+    .btn-act-del { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+    .btn-act-del:hover { background: #fecaca; border-color: #f87171; }
+
+    .login-error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      display: none;
+    }
+
+    /* ========== ADMIN APP LAYOUT ========== */
+    #adminApp {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ========== SIDEBAR ========== */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--dark);
+      color: var(--white);
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: transform 0.3s;
+    }
+
+    .sidebar-header {
+      padding: 1.5rem 1.2rem 1.2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .sidebar-header img {
+      height: 36px;
+      object-fit: contain;
+      filter: brightness(1.1);
+    }
+
+    .sidebar-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1.2;
+    }
+
+    .sidebar-brand span {
+      display: block;
+      font-size: 0.7rem;
+      font-family: 'Crimson Text', serif;
+      color: rgba(255,255,255,0.5);
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 1rem 0.75rem;
+      overflow-y: auto;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.7rem 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.75);
+      font-size: 0.975rem;
+      font-weight: 400;
+      margin-bottom: 0.2rem;
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover {
+      background: var(--dark-hover);
+      color: var(--white);
+    }
+
+    .nav-item.active {
+      background: var(--primary);
+      color: var(--white);
+      font-weight: 600;
+    }
+
+    .nav-item .nav-icon {
+      font-size: 1.1rem;
+      width: 22px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .sidebar-footer {
+      padding: 1rem 0.75rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar-user {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 0.75rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--white);
+      flex-shrink: 0;
+    }
+
+    .user-info-name {
+      font-size: 0.9rem;
+      color: var(--white);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-info-role {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .btn-logout {
+      width: 100%;
+      background: rgba(220,38,38,0.15);
+      color: #fca5a5;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      font-family: 'Crimson Text', serif;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 0.2s;
+    }
+
+    .btn-logout:hover { background: rgba(220,38,38,0.28); }
+
+    /* ========== MOBILE TOGGLE ========== */
+    .sidebar-toggle {
+      display: none;
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 200;
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+    }
+
+    /* ========== MAIN CONTENT ========== */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content-header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 1.2rem 1.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .content-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .header-date {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .content-body {
+      padding: 1.5rem 1.8rem;
+      flex: 1;
+    }
+
+    /* ========== SECTIONS ========== */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ========== STATS CARDS ========== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 1.2rem 1.1rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.9rem;
+      transition: box-shadow 0.2s;
+    }
+
+    .stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+
+    .stat-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+      margin-bottom: 0.2rem;
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    /* ========== CARD / PANEL ========== */
+    .card {
+      background: var(--white);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 1rem 1.3rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .card-body {
+      padding: 1rem 1.3rem;
+    }
+
+    /* ========== FILTER BAR ========== */
+    .filter-bar {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 1rem 1.3rem;
+      border-bottom: 1px solid var(--border);
+      background: #fdfcfb;
+    }
+
+    .filter-bar .form-control {
+      padding: 0.5rem 0.8rem;
+      font-size: 0.9rem;
+    }
+
+    .search-input {
+      min-width: 200px;
+      flex: 1;
+      max-width: 320px;
+    }
+
+    /* ========== TABLE ========== */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.925rem;
+    }
+
+    thead th {
+      background: #f4f2ef;
+      color: var(--text);
+      font-weight: 700;
+      padding: 0.7rem 1rem;
+      text-align: left;
+      white-space: nowrap;
+      border-bottom: 2px solid var(--border);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+
+    tbody tr:nth-child(even) { background: #faf9f7; }
+    tbody tr:hover { background: #f0ede8; }
+
+    tbody td {
+      padding: 0.7rem 1rem;
+      vertical-align: middle;
+    }
+
+    .td-actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .empty-row td {
+      text-align: center;
+      padding: 2.5rem;
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* ========== BADGES ========== */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.775rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-submitted   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+    .badge-verified    { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-scheduled   { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+    .badge-picked_up   { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+    .badge-processing  { background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; }
+    .badge-data_wiped  { background: #ecfeff; color: #155e75; border: 1px solid #a5f3fc; }
+    .badge-ready       { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .badge-distributed { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .badge-completed   { background: #16a34a; color: #fff; border: 1px solid #16a34a; }
+    .badge-approved    { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .badge-matching    { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-preparing   { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+    .badge-in_transit  { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+    .badge-delivered   { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .badge-unknown     { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
+    .badge-admin       { background: #2f5233; color: #fff; border: 1px solid #2f5233; }
+    .badge-user        { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+    .badge-yes         { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .badge-no          { background: #f3f4f6; color: #6b7280; border: 1px solid #d1d5db; }
+
+    /* ========== PAGINATION ========== */
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 1rem 1.3rem;
+      justify-content: flex-end;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .pagination-info {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-right: auto;
+    }
+
+    .page-btn {
+      padding: 0.35rem 0.65rem;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: var(--white);
+      color: var(--text);
+      font-family: 'Crimson Text', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      min-width: 34px;
+      text-align: center;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(47,82,51,0.05);
+    }
+
+    .page-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--white);
+    }
+
+    .page-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ========== QUICK ACTION BUTTONS ========== */
+    .quick-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    /* ========== MINI STATUS GRID ========== */
+    .status-mini-grid {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      padding: 0.75rem 1.3rem;
+      background: #fdfcfb;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .status-mini-card {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: var(--white);
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .status-mini-card .count {
+      background: var(--primary);
+      color: var(--white);
+      border-radius: 10px;
+      padding: 0 0.4rem;
+      font-size: 0.75rem;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    /* ========== MODAL ========== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--white);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+
+    .modal-box.modal-lg { max-width: 680px; }
+    .modal-box.modal-xl { max-width: 860px; }
+
+    .modal-header {
+      padding: 1.2rem 1.5rem 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 0.1rem 0.3rem;
+      border-radius: 4px;
+      line-height: 1;
+    }
+
+    .modal-close:hover { color: var(--danger); background: #fef2f2; }
+
+    .modal-body {
+      padding: 1.3rem 1.5rem;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    /* ========== VERIFY MODAL ITEMS ========== */
+    .verify-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 0.6rem;
+      background: #fdfcfb;
+    }
+
+    .verify-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .verify-item-info { flex: 1; }
+    .verify-item-name { font-weight: 600; font-size: 0.95rem; }
+    .verify-item-detail { font-size: 0.83rem; color: var(--text-muted); }
+
+    /* ========== PHOTO GALLERY ========== */
+    .photo-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .photo-gallery img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .photo-gallery img:hover { opacity: 0.85; }
+
+    /* ========== REQUEST DETAIL MODAL ========== */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .detail-section {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .detail-section.full-width { grid-column: 1 / -1; }
+    .detail-section h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.85rem;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .detail-label {
+      min-width: 120px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .detail-value {
+      color: var(--text);
+      font-weight: 500;
+      word-break: break-word;
+    }
+    .detail-doc-preview {
+      margin-top: 0.6rem;
+    }
+    .detail-doc-preview img {
+      max-width: 100%;
+      max-height: 320px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .detail-doc-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      background: var(--primary);
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.88rem;
+    }
+    .detail-doc-link:hover { background: var(--primary-light); }
+    @media (max-width: 600px) {
+      .detail-grid { grid-template-columns: 1fr; }
+      .detail-section.full-width { grid-column: 1; }
+    }
+
+    /* ========== TOAST ========== */
+    #toastContainer {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--dark);
+      color: var(--white);
+      padding: 0.7rem 1.1rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      max-width: 340px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      pointer-events: all;
+      animation: slideIn 0.25s ease;
+    }
+
+    .toast-success { background: var(--primary); }
+    .toast-error   { background: var(--danger); }
+    .toast-info    { background: #2563eb; }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0);   opacity: 1; }
+    }
+
+    /* ========== LOADING ========== */
+    .loading-row td {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(47,82,51,0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.4rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ========== MISC ========== */
+    .text-muted { color: var(--text-muted); }
+    .text-small { font-size: 0.85rem; }
+    .monospace { font-family: 'Courier New', monospace; font-size: 0.85rem; }
+    .truncate { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    select.form-control option { font-family: sans-serif; }
+
+    .select-role {
+      padding: 0.3rem 0.5rem;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-family: 'Crimson Text', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: var(--white);
+    }
+
+    .meta-json {
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-overlay.open {
+        display: block;
+      }
+
+      .sidebar-toggle {
+        display: flex;
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .content-header {
+        padding: 1rem 1rem 1rem 3.5rem;
+      }
+
+      .content-body {
+        padding: 1rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .search-input { max-width: 100%; }
+
+      .td-actions { flex-direction: column; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .modal-box { max-height: 95vh; }
+    }
+
+    /* ===== ENHANCED DASHBOARD ===== */
+    .stat-card { border-top: 3px solid var(--sc-color, var(--primary)); position: relative; overflow: hidden; }
+    .stat-card::after {
+      content: ''; position: absolute; right: -10px; bottom: -10px;
+      width: 60px; height: 60px; border-radius: 50%;
+      background: var(--sc-color, var(--primary)); opacity: 0.06;
+    }
+    .stat-card-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 5px; }
+    .stat-card-trend { font-size: 0.71rem; font-weight: 700; margin-top: 3px; letter-spacing: 0.3px; }
+    .stat-card-trend.up { color: #16a34a; }
+    .stat-card-trend.warn { color: #d97706; }
+    .stat-card-trend.neu { color: var(--text-muted); }
+
+    .dash-charts-row {
+      display: grid; grid-template-columns: 300px 1fr; gap: 1.2rem; margin-bottom: 1.2rem;
+    }
+    .dash-chart-inner { padding: 0 1.2rem 1.2rem; }
+    .dash-donut-wrap { display: flex; align-items: center; gap: 16px; padding: 0 1.2rem 1.2rem; }
+    .dash-donut-canvas { width: 150px !important; height: 150px !important; flex-shrink: 0; }
+    .donut-legend { flex: 1; }
+    .donut-leg-item { display: flex; align-items: center; gap: 7px; font-size: 0.78rem; color: var(--text); margin-bottom: 6px; }
+    .donut-leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .donut-leg-val { margin-left: auto; font-weight: 700; color: var(--primary); font-size: 0.82rem; }
+
+    .dash-mid-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem;
+    }
+    .dash-mid-row .card { margin-bottom: 0; }
+    .dash-mid-body { padding: 0; }
+
+    .device-bar-item { padding: 8px 16px; border-bottom: 1px solid var(--border); }
+    .device-bar-item:last-child { border-bottom: none; }
+    .device-bar-label-row { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 5px; color: var(--text); }
+    .device-bar-label-row span:last-child { font-weight: 700; color: var(--primary); }
+    .device-bar-track { background: #f0ece6; border-radius: 4px; height: 7px; }
+    .device-bar-fill { height: 7px; border-radius: 4px; transition: width 0.6s ease; }
+
+    .pending-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); gap: 8px; }
+    .pending-item:last-child { border-bottom: none; }
+    .pending-item-left { display: flex; align-items: center; gap: 9px; }
+    .pending-item-icon { font-size: 1.1rem; }
+    .pending-item-label { font-size: 0.82rem; color: var(--text); line-height: 1.3; }
+    .pending-item-sub { font-size: 0.7rem; color: var(--text-muted); }
+    .pending-badge { border-radius: 20px; padding: 2px 11px; font-size: 0.76rem; font-weight: 700; white-space: nowrap; }
+    .pending-badge.urgent { background: #fee2e2; color: #991b1b; }
+    .pending-badge.warn { background: #fef3c7; color: #92400e; }
+    .pending-badge.ok { background: #dcfce7; color: #166534; }
+
+    .metric-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+    .metric-item:last-child { border-bottom: none; }
+    .metric-label { font-size: 0.82rem; color: var(--text-muted); line-height: 1.3; }
+    .metric-label small { display: block; font-size: 0.7rem; }
+    .metric-value { font-size: 1.05rem; font-weight: 700; color: var(--primary); font-family: 'Playfair Display', serif; text-align: right; }
+    .metric-value small { display: block; font-size: 0.65rem; font-weight: 400; color: var(--text-muted); font-family: inherit; }
+
+    @media (max-width: 1100px) {
+      .dash-charts-row { grid-template-columns: 1fr; }
+      .dash-mid-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 700px) {
+      .dash-mid-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ========== TOAST CONTAINER ========== -->
+  <div id="toastContainer"></div>
+
+  <!-- ========== LOGIN SCREEN ========== -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo">
+        <img src="assets/logo-gearup.png" alt="GEARUP" onerror="this.style.display='none'">
+      </div>
+      <h1 class="login-title">ระบบจัดการ GEARUP</h1>
+      <p class="login-subtitle">Admin Panel — กรุณาเข้าสู่ระบบ</p>
+
+      <div class="login-error" id="loginError"></div>
+
+      <div class="form-group">
+        <label for="loginEmail">อีเมล</label>
+        <input type="email" id="loginEmail" class="form-control" placeholder="admin@example.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">รหัสผ่าน</label>
+        <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" autocomplete="current-password">
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btnAdminLogin" onclick="adminLogin()">
+        เข้าสู่ระบบ
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== ADMIN APP ========== -->
+  <div id="adminApp" style="display:none">
+
+    <!-- Mobile sidebar toggle -->
+    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle menu">&#9776;</button>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <img src="assets/logo-gearup.png" alt="GEARUP" onerror="this.style.display='none'">
+        <div class="sidebar-brand">
+          GEARUP
+          <span>Admin Panel</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-section="dashboard" onclick="showSection('dashboard')">
+          <span class="nav-icon">&#128202;</span> ภาพรวม
+        </button>
+        <button class="nav-item" data-section="donations" onclick="showSection('donations')">
+          <span class="nav-icon">&#128230;</span> การบริจาค
+        </button>
+        <button class="nav-item" data-section="requests" onclick="showSection('requests')">
+          <span class="nav-icon">&#127979;</span> คำขอรับบริจาค
+        </button>
+        <button class="nav-item" data-section="recycle" onclick="showSection('recycle')">
+          <span class="nav-icon">&#9851;</span> รีไซเคิล
+        </button>
+        <button class="nav-item" data-section="users" onclick="showSection('users')">
+          <span class="nav-icon">&#128101;</span> ผู้ใช้งาน
+        </button>
+        <button class="nav-item" data-section="audit" onclick="showSection('audit')">
+          <span class="nav-icon">&#128203;</span> บันทึกกิจกรรม
+        </button>
+        <button class="nav-item" data-section="corporate" onclick="showSection('corporate')">
+          <span class="nav-icon">&#127970;</span> องค์กร CSR
+        </button>
+        <button class="nav-item" data-section="events" onclick="showSection('events')">
+          <span class="nav-icon">&#128197;</span> กิจกรรม / นัดหมาย
+        </button>
+        <button class="nav-item" data-section="schools" onclick="showSection('schools')">
+          <span class="nav-icon">&#127979;</span> โรงเรียน / องค์กร
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="user-avatar" id="sidebarAvatarLetter">A</div>
+          <div>
+            <div class="user-info-name" id="sidebarUserName">Admin</div>
+            <div class="user-info-role">Administrator</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="adminLogout()">
+          <span>&#x2715;</span> ออกจากระบบ
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+      <header class="content-header">
+        <h1 id="sectionTitle">ภาพรวมระบบ GEARUP</h1>
+        <div class="header-date" id="headerDate"></div>
+      </header>
+
+      <div class="content-body">
+
+        <!-- ===== DASHBOARD ===== -->
+        <section class="section active" id="section-dashboard">
+
+          <!-- Row 1: KPI stat cards -->
+          <div class="stats-grid" id="dashboardStats">
+            <div class="stat-card" style="--sc-color:#2f5233">
+              <div class="stat-icon">&#128230;</div>
+              <div>
+                <div class="stat-value" id="stat-donations">—</div>
+                <div class="stat-label">การบริจาคทั้งหมด</div>
+                <div class="stat-card-sub" id="stat-donations-sub"></div>
+              </div>
+            </div>
+            <div class="stat-card" style="--sc-color:#f59e0b">
+              <div class="stat-icon">&#9203;</div>
+              <div>
+                <div class="stat-value" id="stat-pending">—</div>
+                <div class="stat-label">รอตรวจสอบ</div>
+                <div class="stat-card-trend warn" id="stat-pending-trend"></div>
+              </div>
+            </div>
+            <div class="stat-card" style="--sc-color:#3b82f6">
+              <div class="stat-icon">&#127979;</div>
+              <div>
+                <div class="stat-value" id="stat-requests">—</div>
+                <div class="stat-label">คำขอรับบริจาค</div>
+                <div class="stat-card-sub" id="stat-requests-sub"></div>
+              </div>
+            </div>
+            <div class="stat-card" style="--sc-color:#14b8a6">
+              <div class="stat-icon">&#9851;</div>
+              <div>
+                <div class="stat-value" id="stat-recycle">—</div>
+                <div class="stat-label">รีไซเคิลวันนี้</div>
+                <div class="stat-card-sub">รายการส่งต่อรีไซเคิล</div>
+              </div>
+            </div>
+            <div class="stat-card" style="--sc-color:#10b981">
+              <div class="stat-icon">&#127807;</div>
+              <div>
+                <div class="stat-value" id="stat-carbon">—</div>
+                <div class="stat-label">คาร์บอนลดได้ (kgCO₂e)</div>
+                <div class="stat-card-sub" id="stat-carbon-sub"></div>
+              </div>
+            </div>
+            <div class="stat-card" style="--sc-color:#8b5cf6">
+              <div class="stat-icon">&#128101;</div>
+              <div>
+                <div class="stat-value" id="stat-users">—</div>
+                <div class="stat-label">ผู้ใช้งาน</div>
+                <div class="stat-card-sub" id="stat-completed-sub"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: Charts -->
+          <div class="dash-charts-row">
+            <div class="card" style="margin-bottom:0">
+              <div class="card-header"><span class="card-title">&#127942; สถานะการบริจาค</span></div>
+              <div class="dash-donut-wrap">
+                <canvas id="statusDonutChart" class="dash-donut-canvas"></canvas>
+                <div class="donut-legend" id="donutLegend">
+                  <div style="color:#aaa;font-size:0.8rem;">กำลังโหลด...</div>
+                </div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:0">
+              <div class="card-header"><span class="card-title">&#128200; การบริจาค 7 วันล่าสุด</span></div>
+              <div class="dash-chart-inner" style="height:200px;position:relative;">
+                <canvas id="weeklyBarChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3: Device breakdown / Pending actions / Key metrics -->
+          <div class="dash-mid-row">
+            <div class="card" style="margin-bottom:0">
+              <div class="card-header"><span class="card-title">&#128187; ประเภทอุปกรณ์ที่บริจาค</span></div>
+              <div class="dash-mid-body" id="deviceTypeBars">
+                <div style="padding:16px;color:#aaa;font-size:0.82rem;">กำลังโหลด...</div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:0">
+              <div class="card-header"><span class="card-title">&#9888;&#65039; รายการรอดำเนินการ</span></div>
+              <div class="dash-mid-body" id="pendingActions">
+                <div style="padding:16px;color:#aaa;font-size:0.82rem;">กำลังโหลด...</div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:0">
+              <div class="card-header"><span class="card-title">&#128201; ตัวชี้วัดหลัก</span></div>
+              <div class="dash-mid-body" id="keyMetrics">
+                <div style="padding:16px;color:#aaa;font-size:0.82rem;">กำลังโหลด...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 4: School aid chart -->
+          <div class="card" style="margin-bottom:1.2rem">
+            <div class="card-header">
+              <span class="card-title">&#127979; ความช่วยเหลือต่อโรงเรียน — ขอ vs ได้รับแล้ว</span>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-size:0.75rem;color:var(--text-muted)" id="schoolChartSubtitle">Top 10 · ได้รับน้อย → มาก</span>
+                <button class="btn btn-sm btn-outline" id="btnSchoolSortAsc" onclick="filterSchoolAidChart('asc')" style="font-size:0.72rem;padding:0.2rem 0.55rem;background:var(--primary);color:white;border-color:var(--primary);" title="เรียงจากได้รับน้อย → มาก">↑ น้อย→มาก</button>
+                <button class="btn btn-sm btn-outline" id="btnSchoolSortDesc" onclick="filterSchoolAidChart('desc')" style="font-size:0.72rem;padding:0.2rem 0.55rem;" title="เรียงจากได้รับมาก → น้อย">↓ มาก→น้อย</button>
+              </div>
+            </div>
+            <div style="padding:0.5rem 1.2rem 0.8rem;position:relative;">
+              <div id="schoolChartEmpty" style="display:none;padding:2rem;text-align:center;color:#aaa;font-size:0.85rem;">ยังไม่มีโรงเรียนที่เปิดรับบริจาค</div>
+              <div id="schoolAidChart" style="padding:0.25rem 0.5rem 0.5rem;"></div>
+              <div style="text-align:right;margin-top:0.5rem;" id="schoolChartMore"></div>
+            </div>
+          </div>
+
+          <!-- Row 5: Recent activity -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">&#128336; กิจกรรมล่าสุด — 10 การบริจาคล่าสุด</span>
+              <div class="quick-actions">
+                <button class="btn btn-primary btn-sm" onclick="showSection('donations')">ดูการบริจาคใหม่</button>
+                <button class="btn btn-secondary btn-sm" onclick="showSection('requests')">อนุมัติคำขอ</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันที่</th>
+                    <th>Tracking ID</th>
+                    <th>ผู้บริจาค</th>
+                    <th>อุปกรณ์</th>
+                    <th>สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody id="recentActivityBody">
+                  <tr class="loading-row"><td colspan="5"><span class="spinner"></span> กำลังโหลด...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== DONATIONS ===== -->
+        <section class="section" id="section-donations">
+          <div class="card">
+            <div class="filter-bar">
+              <input type="text" id="donationSearch" class="form-control search-input" placeholder="&#128269; ค้นหา Tracking ID หรือชื่อ...">
+              <select id="donationStatusFilter" class="form-control" style="width:auto">
+                <option value="">ทุกสถานะ</option>
+                <option value="submitted">Submitted</option>
+                <option value="verified">Verified</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="picked_up">Picked Up</option>
+                <option value="processing">Processing</option>
+                <option value="data_wiped">Data Wiped</option>
+                <option value="ready">Ready</option>
+                <option value="distributed">Distributed</option>
+                <option value="completed">Completed</option>
+              </select>
+              <input type="date" id="donationDateFrom" class="form-control" style="width:auto">
+              <input type="date" id="donationDateTo" class="form-control" style="width:auto">
+              <button class="btn btn-outline btn-sm" onclick="loadDonations(1)">&#128269; ค้นหา</button>
+            </div>
+
+            <div class="status-mini-grid" id="donationStatusMini"></div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันที่</th>
+                    <th>Tracking ID</th>
+                    <th>ผู้บริจาค</th>
+                    <th>ปลายทาง</th>
+                    <th>อุปกรณ์</th>
+                    <th>น้ำหนัก (kg)</th>
+                    <th>สถานะ</th>
+                    <th>การจัดส่ง</th>
+                    <th>การดำเนินการ</th>
+                  </tr>
+                </thead>
+                <tbody id="donationsTableBody">
+                  <tr class="loading-row"><td colspan="9"><span class="spinner"></span> กำลังโหลด...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination" id="donationsPagination"></div>
+          </div>
+        </section>
+
+        <!-- ===== REQUESTS ===== -->
+        <section class="section" id="section-requests">
+          <div class="card">
+            <div class="filter-bar">
+              <input type="text" id="requestSearch" class="form-control search-input" placeholder="&#128269; ค้นหา Tracking ID หรือองค์กร...">
+              <select id="requestStatusFilter" class="form-control" style="width:auto">
+                <option value="">ทุกสถานะ</option>
+                <option value="submitted">Submitted</option>
+                <option value="approved">Approved</option>
+                <option value="matching">Matching</option>
+                <option value="preparing">Preparing</option>
+                <option value="in_transit">In Transit</option>
+                <option value="delivered">Delivered</option>
+                <option value="completed">Completed</option>
+              </select>
+              <select id="requestOrgFilter" class="form-control" style="width:auto">
+                <option value="">ทุกประเภทองค์กร</option>
+                <option value="school">โรงเรียน</option>
+                <option value="ngo">NGO</option>
+                <option value="community">ชุมชน</option>
+                <option value="hospital">โรงพยาบาล</option>
+                <option value="other">อื่นๆ</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="loadRequests(1)">&#128269; ค้นหา</button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันที่</th>
+                    <th>Tracking ID</th>
+                    <th>ชื่อโรงเรียน/มูลนิธิ</th>
+                    <th>ประเภทอุปกรณ์</th>
+                    <th>สถานะ</th>
+                    <th>โพสต์สาธารณะ</th>
+                    <th>การดำเนินการ</th>
+                  </tr>
+                </thead>
+                <tbody id="requestsTableBody">
+                  <tr class="loading-row"><td colspan="7"><span class="spinner"></span> กำลังโหลด...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination" id="requestsPagination"></div>
+          </div>
+        </section>
+
+        <!-- ===== RECYCLE ===== -->
+        <section class="section" id="section-recycle">
+          <div class="card">
+            <div class="filter-bar">
+              <input type="text" id="recycleSearch" class="form-control search-input" placeholder="&#128269; ค้นหาชื่อหรืออุปกรณ์...">
+              <button class="btn btn-outline btn-sm" onclick="loadRecycle(1)">&#128269; ค้นหา</button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันที่</th>
+                    <th>ชื่อผู้ส่ง</th>
+                    <th>อุปกรณ์</th>
+                    <th>ยี่ห้อ/รุ่น</th>
+                    <th>Serial No.</th>
+                    <th>อีเมล</th>
+                    <th>โทรศัพท์</th>
+                    <th>ใบรับรอง</th>
+                    <th>การดำเนินการ</th>
+                  </tr>
+                </thead>
+                <tbody id="recycleTableBody">
+                  <tr class="loading-row"><td colspan="9"><span class="spinner"></span> กำลังโหลด...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination" id="recyclePagination"></div>
+          </div>
+        </section>
+
+        <!-- ===== USERS ===== -->
+        <section class="section" id="section-users">
+          <div class="card">
+            <div class="filter-bar">
+              <input type="text" id="userSearch" class="form-control search-input" placeholder="&#128269; ค้นหาชื่อหรืออีเมล...">
+              <select id="userRoleFilter" class="form-control" style="width:auto">
+                <option value="">ทุก Role</option>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="loadUsers(1)">&#128269; ค้นหา</button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันที่สมัคร</th>
+                    <th>ชื่อ</th>
+                    <th>อีเมล</th>
+                    <th>Role</th>
+                    <th>Provider</th>
+                    <th>การดำเนินการ</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                  <tr class="loading-row"><td colspan="6"><span class="spinner"></span> กำลังโหลด...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination" id="usersPagination"></div>
+          </div>
+        </section>
+
+        <!-- ===== AUDIT LOGS ===== -->
+        <!-- ===== CORPORATE ===== -->
+        <section class="section" id="section-corporate">
+          <!-- Inquiries -->
+          <div class="card" style="margin-bottom:1.5rem">
+            <div class="card-header">
+              <span class="card-title">&#128231; คำขอจากองค์กร</span>
+              <div style="display:flex;gap:0.5rem">
+                <button class="btn btn-outline btn-sm" onclick="loadInquiries()">&#8635; รีเฟรช</button>
+                <button class="btn btn-primary btn-sm" onclick="openAddInquiryModal()">+ บันทึกการติดต่อ</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันที่</th>
+                    <th>องค์กร</th>
+                    <th>ผู้ติดต่อ</th>
+                    <th>อีเมล / โทร</th>
+                    <th>แพ็คเกจ</th>
+                    <th>เครื่อง</th>
+                    <th>ไฟล์อุปกรณ์</th>
+                    <th>สถานะ</th>
+                    <th>การดำเนินการ</th>
+                  </tr>
+                </thead>
+                <tbody id="inquiriesTableBody">
+                  <tr class="loading-row"><td colspan="9"><span class="spinner"></span> กำลังโหลด...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Corporate Accounts -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">&#127970; บัญชีองค์กร (Corporate Accounts)</span>
+              <button class="btn btn-primary btn-sm" onclick="openCorporateModal()">+ เพิ่มองค์กร</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>องค์กร</th>
+                    <th>แพ็คเกจ</th>
+                    <th>Quota</th>
+                    <th>เครื่องปัจจุบัน</th>
+                    <th>MS ติดตั้ง</th>
+                    <th>วันหมด</th>
+                    <th>สถานะ</th>
+                    <th>การดำเนินการ</th>
+                  </tr>
+                </thead>
+                <tbody id="corporateTableBody">
+                  <tr class="loading-row"><td colspan="8"><span class="spinner"></span> กำลังโหลด...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== AUDIT ===== -->
+        <section class="section" id="section-audit">
+          <div class="card">
+            <div class="filter-bar">
+              <input type="text" id="auditSearch" class="form-control search-input" placeholder="&#128269; ค้นหาเหตุการณ์...">
+              <select id="auditEventFilter" class="form-control" style="width:auto">
+                <option value="">ทุกประเภท</option>
+                <option value="donation_created">donation_created</option>
+                <option value="donation_updated">donation_updated</option>
+                <option value="request_created">request_created</option>
+                <option value="request_updated">request_updated</option>
+                <option value="user_login">user_login</option>
+                <option value="user_register">user_register</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="loadAuditLogs(1)">&#128269; ค้นหา</button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันที่/เวลา</th>
+                    <th>User ID</th>
+                    <th>เหตุการณ์</th>
+                    <th>รายละเอียด</th>
+                  </tr>
+                </thead>
+                <tbody id="auditTableBody">
+                  <tr class="loading-row"><td colspan="4"><span class="spinner"></span> กำลังโหลด...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination" id="auditPagination"></div>
+          </div>
+        </section>
+
+        <!-- ===== EVENTS ===== -->
+        <section class="section" id="section-events">
+
+          <!-- Filter bar -->
+          <div class="card" style="margin-bottom:1.25rem;padding:1rem 1.25rem;">
+            <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;">
+              <select id="evtFilterCorp" onchange="loadEvents()" style="flex:1;min-width:160px;padding:0.45rem 0.65rem;border:1px solid #ddd;border-radius:7px;font-size:0.9rem;">
+                <option value="">— ทุกองค์กร —</option>
+              </select>
+              <select id="evtFilterStatus" onchange="loadEvents()" style="flex:1;min-width:140px;padding:0.45rem 0.65rem;border:1px solid #ddd;border-radius:7px;font-size:0.9rem;">
+                <option value="">— ทุกสถานะ —</option>
+                <option value="pending">รอยืนยัน</option>
+                <option value="confirmed">ยืนยันแล้ว</option>
+                <option value="completed">เสร็จสิ้น</option>
+                <option value="cancelled">ยกเลิก</option>
+              </select>
+              <select id="evtFilterType" onchange="loadEvents()" style="flex:1;min-width:160px;padding:0.45rem 0.65rem;border:1px solid #ddd;border-radius:7px;font-size:0.9rem;">
+                <option value="">— ทุกประเภท —</option>
+                <option value="delivery">จัดส่งอุปกรณ์</option>
+                <option value="site_visit">ลงพื้นที่</option>
+                <option value="handover">ส่งมอบจริง</option>
+                <option value="photo_session">ถ่ายรูป</option>
+                <option value="other">อื่นๆ</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openEventModal()" style="white-space:nowrap;">+ สร้างกิจกรรม</button>
+            </div>
+          </div>
+
+          <!-- Events list -->
+          <div id="eventsListWrap">
+            <div class="loading-state">กำลังโหลด...</div>
+          </div>
+
+        </section>
+
+        <!-- ===== SCHOOLS ===== -->
+        <section class="section" id="section-schools">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+              <input id="schoolSearch" type="text" placeholder="ค้นหาชื่อ / อีเมล…"
+                style="padding:0.45rem 0.75rem;border:1px solid #ddd;border-radius:7px;font-size:0.9rem;min-width:220px;"
+                oninput="filterSchools()">
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openSchoolModal()">+ เพิ่มโรงเรียน/องค์กร</button>
+          </div>
+          <div id="schoolsTableWrap">
+            <div class="loading-state">กำลังโหลด...</div>
+          </div>
+        </section>
+
+        <!-- SCHOOL MODAL -->
+        <div id="modalSchool" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeSchoolModal()">
+          <div class="modal-box" style="max-width:560px;">
+            <div class="modal-header">
+              <h2 id="schoolModalTitle">เพิ่มโรงเรียน/องค์กร</h2>
+              <button class="modal-close" onclick="closeSchoolModal()">✕</button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="schoolModalId">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;">
+                <div style="grid-column:1/-1;">
+                  <label style="font-size:0.85rem;font-weight:600;color:#555;display:block;margin-bottom:0.3rem;">ชื่อโรงเรียน/องค์กร <span style="color:red">*</span></label>
+                  <input id="schoolName" type="text" class="form-input" placeholder="โรงเรียนตัวอย่าง">
+                </div>
+                <div style="grid-column:1/-1;">
+                  <label style="font-size:0.85rem;font-weight:600;color:#555;display:block;margin-bottom:0.3rem;">อีเมล (ใช้ login) <span style="color:red">*</span></label>
+                  <input id="schoolEmail" type="email" class="form-input" placeholder="school@example.com">
+                  <div id="schoolEmailNote" style="font-size:0.78rem;color:#888;margin-top:0.25rem;"></div>
+                </div>
+                <div>
+                  <label style="font-size:0.85rem;font-weight:600;color:#555;display:block;margin-bottom:0.3rem;">เบอร์โทรศัพท์</label>
+                  <input id="schoolPhone" type="text" class="form-input" placeholder="0812345678">
+                </div>
+                <div>
+                  <label style="font-size:0.85rem;font-weight:600;color:#555;display:block;margin-bottom:0.3rem;">จังหวัด</label>
+                  <input id="schoolProvince" type="text" class="form-input" placeholder="กรุงเทพมหานคร">
+                </div>
+                <div style="grid-column:1/-1;">
+                  <label style="font-size:0.85rem;font-weight:600;color:#555;display:block;margin-bottom:0.3rem;">ที่อยู่</label>
+                  <textarea id="schoolAddress" class="form-input" rows="2" placeholder="เลขที่ ซอย ถนน ตำบล อำเภอ" style="resize:vertical;"></textarea>
+                </div>
+                <div style="grid-column:1/-1;">
+                  <label style="font-size:0.85rem;font-weight:600;color:#555;display:block;margin-bottom:0.3rem;">URL รูป Banner (แสดงในพอร์ทัลผู้รับ)</label>
+                  <input id="schoolBannerUrl" type="url" class="form-input" placeholder="https://...">
+                  <div id="schoolBannerPreview" style="margin-top:0.5rem;display:none;">
+                    <img id="schoolBannerImg" src="" alt="banner preview"
+                      style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline" onclick="closeSchoolModal()">ยกเลิก</button>
+              <button class="btn btn-primary" onclick="saveSchool()">บันทึก</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ========== MODAL: CREATE/EDIT EVENT ========== -->
+  <div class="modal-overlay" id="modalEvent" style="display:none;" onclick="if(event.target===this)closeEventModal()">
+    <div class="modal-box" style="max-width:640px;">
+      <div class="modal-header">
+        <h2 id="modalEventTitle">สร้างกิจกรรม</h2>
+        <button class="modal-close" onclick="closeEventModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="display:grid;gap:1rem;">
+        <input type="hidden" id="evtId">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div>
+            <label class="form-label">องค์กร *</label>
+            <select id="evtCorpId" class="form-control">
+              <option value="">เลือกองค์กร</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">ประเภทกิจกรรม *</label>
+            <select id="evtType" class="form-control">
+              <option value="delivery">&#128230; จัดส่งอุปกรณ์</option>
+              <option value="site_visit">&#127979; ลงพื้นที่</option>
+              <option value="handover">&#129309; ส่งมอบจริง</option>
+              <option value="photo_session">&#128248; ถ่ายรูป</option>
+              <option value="other">&#128203; อื่นๆ</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="form-label">ชื่อกิจกรรม *</label>
+          <input type="text" id="evtTitle" class="form-control" placeholder="เช่น ส่งมอบแล็ปท็อป 30 เครื่อง ให้โรงเรียนบ้านดอยสวรรค์">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div>
+            <label class="form-label">วันที่นัดหมาย</label>
+            <input type="datetime-local" id="evtScheduledDate" class="form-control">
+          </div>
+          <div>
+            <label class="form-label">สถานะ</label>
+            <select id="evtStatus" class="form-control">
+              <option value="pending">&#9203; รอยืนยัน</option>
+              <option value="confirmed">&#9989; ยืนยันแล้ว</option>
+              <option value="completed">&#127881; เสร็จสิ้น</option>
+              <option value="cancelled">&#10060; ยกเลิก</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div>
+            <label class="form-label">ขนส่ง</label>
+            <select id="evtCarrier" class="form-control">
+              <option value="">— ไม่ระบุ —</option>
+              <option value="ไปรษณีย์ไทย">ไปรษณีย์ไทย</option>
+              <option value="J&T Express">J&T Express</option>
+              <option value="Flash Express">Flash Express</option>
+              <option value="Kerry Express">Kerry Express</option>
+              <option value="ลงพื้นที่เอง">ลงพื้นที่เอง</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">เลขพัสดุ</label>
+            <input type="text" id="evtTrackingId" class="form-control" placeholder="เลข Tracking">
+          </div>
+        </div>
+
+        <div>
+          <label class="form-label">สถานที่</label>
+          <input type="text" id="evtLocation" class="form-control" placeholder="ชื่อโรงเรียน / ที่อยู่">
+        </div>
+
+        <div>
+          <label class="form-label">หมายเหตุ / รายละเอียด</label>
+          <textarea id="evtNotes" class="form-control" rows="3" placeholder="รายละเอียดเพิ่มเติม..." style="resize:vertical;"></textarea>
+        </div>
+
+        <!-- Photo upload (only when editing existing event) -->
+        <div id="evtPhotoSection" style="display:none;">
+          <label class="form-label">รูปภาพกิจกรรม</label>
+          <div id="evtPhotoGrid" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;"></div>
+          <label style="cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;background:#f0f4f1;border:1.5px dashed #2f5233;padding:0.45rem 1rem;border-radius:7px;font-size:0.88rem;color:#2f5233;font-weight:600;">
+            &#128247; เพิ่มรูป
+            <input type="file" id="evtPhotoInput" accept="image/*" multiple style="display:none;" onchange="handleEventPhotoUpload(this)">
+          </label>
+          <span id="evtPhotoStatus" style="font-size:0.8rem;color:#888;margin-left:0.5rem;"></span>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeEventModal()">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="saveEvent()">&#128190; บันทึก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL: VERIFY DONATION ========== -->
+  <div class="modal-overlay" id="modalVerify">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h2>&#10003; ตรวจสอบการบริจาค</h2>
+        <button class="modal-close" onclick="closeModal('modalVerify')">&times;</button>
+      </div>
+      <div class="modal-body" id="verifyModalBody">
+        <p class="text-muted">กำลังโหลด...</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalVerify')">ยกเลิก</button>
+        <button class="btn btn-primary" id="btnSubmitVerify" onclick="submitVerification()">ยืนยันการตรวจสอบ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL: UPDATE STATUS ========== -->
+  <div class="modal-overlay" id="modalStatus">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>&#8593; อัพเดทสถานะ</h2>
+        <button class="modal-close" onclick="closeModal('modalStatus')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="statusModalId">
+        <input type="hidden" id="statusModalType">
+        <div class="form-group">
+          <label>Tracking ID</label>
+          <div id="statusModalTrackingId" class="monospace" style="padding:0.4rem 0; color:var(--text-muted)"></div>
+        </div>
+        <div class="form-group">
+          <label>สถานะปัจจุบัน</label>
+          <div id="statusModalCurrent" style="padding:0.4rem 0;"></div>
+        </div>
+        <div class="form-group">
+          <label for="statusModalNew">สถานะใหม่</label>
+          <select id="statusModalNew" class="form-control" onchange="onStatusSelectChange()"></select>
+        </div>
+        <div class="form-group">
+          <label for="statusModalNote">หมายเหตุ (ไม่บังคับ)</label>
+          <textarea id="statusModalNote" class="form-control" rows="2" placeholder="บันทึกเพิ่มเติม..."></textarea>
+        </div>
+        <!-- Shown only when status = distributed -->
+        <div id="statusConfirmSection" style="display:none; border:1px solid #d4a574; border-radius:8px; padding:1rem; margin-top:0.5rem; background:#fffaf4;">
+          <p style="font-weight:600; margin-bottom:0.75rem; color:#2f5233;">&#10003; ยืนยันการจัดส่งกับผู้รับ</p>
+          <div class="form-group" style="margin-bottom:0.6rem;">
+            <label style="font-size:0.85rem;">ชื่อผู้ยืนยัน (ฝั่งโรงเรียน/มูลนิธิ)</label>
+            <input type="text" id="scConfirmName" class="form-control" placeholder="ชื่อ-นามสกุล">
+          </div>
+          <div class="form-group" style="margin-bottom:0.6rem;">
+            <label style="font-size:0.85rem;">เบอร์โทร</label>
+            <input type="text" id="scConfirmPhone" class="form-control" placeholder="0xx-xxx-xxxx">
+          </div>
+          <div class="form-group" style="margin-bottom:0.4rem;">
+            <label style="font-size:0.85rem; display:flex; align-items:center; gap:0.5rem;">
+              <input type="checkbox" id="scReceivedConfirmed"> ผู้รับยืนยันว่าได้รับของแล้ว
+            </label>
+          </div>
+          <div class="form-group" style="margin-bottom:0.4rem;">
+            <label style="font-size:0.85rem; display:flex; align-items:center; gap:0.5rem;">
+              <input type="checkbox" id="scItemsMatch"> อุปกรณ์ตรงตามรายการที่แจ้ง
+            </label>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.85rem; display:flex; align-items:center; gap:0.5rem;">
+              <input type="checkbox" id="scItemsFunctional"> อุปกรณ์ใช้งานได้
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalStatus')">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="submitStatusUpdate()">อัพเดทสถานะ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL: APPROVE REQUEST ========== -->
+  <div class="modal-overlay" id="modalApprove">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>&#10003; อนุมัติคำขอรับบริจาค</h2>
+        <button class="modal-close" onclick="closeModal('modalApprove')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="approveModalId">
+        <div class="form-group">
+          <label>Tracking ID</label>
+          <div id="approveModalTrackingId" class="monospace" style="padding:0.4rem 0; color:var(--text-muted)"></div>
+        </div>
+        <div class="form-group">
+          <label>องค์กร</label>
+          <div id="approveModalOrg" style="padding:0.4rem 0; font-weight:600;"></div>
+        </div>
+        <div class="form-group">
+          <label for="approvePriority">ลำดับความสำคัญโพสต์</label>
+          <select id="approvePriority" class="form-control">
+            <option value="high">สูง (High)</option>
+            <option value="medium" selected>กลาง (Medium)</option>
+            <option value="low">ต่ำ (Low)</option>
+          </select>
+        </div>
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:0.75rem 1rem; font-size:0.9rem; color:#166534;">
+          การอนุมัติจะ: เปลี่ยนสถานะเป็น <strong>approved</strong> และเปิดเป็นโพสต์สาธารณะ
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalApprove')">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="submitApproveRequest()">อนุมัติและเผยแพร่</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL: INQUIRY DETAIL ========== -->
+  <div class="modal-overlay" id="modalInquiryDetail">
+    <div class="modal-box" style="max-width:780px">
+      <div class="modal-header">
+        <h2 id="inquiryDetailTitle">รายละเอียด Inquiry</h2>
+        <button class="modal-close" onclick="closeModal('modalInquiryDetail')">&times;</button>
+      </div>
+      <div class="modal-body" id="inquiryDetailBody" style="max-height:70vh;overflow-y:auto"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalInquiryDetail')">ปิด</button>
+        <button class="btn btn-primary" id="btnGenerateQuotation" onclick="generateQuotationPdf()">📄 ออกใบเสนอราคา PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL: CONFIRM DELETE ========== -->
+  <div class="modal-overlay" id="modalConfirm">
+    <div class="modal-box" style="max-width:400px">
+      <div class="modal-header">
+        <h2>&#9888; ยืนยันการลบ</h2>
+        <button class="modal-close" onclick="closeModal('modalConfirm')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmModalMessage" style="font-size:1rem; line-height:1.6;">คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?</p>
+        <p style="margin-top:0.6rem; font-size:0.88rem; color:var(--danger);">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnConfirmCancel">ยกเลิก</button>
+        <button class="btn btn-danger" id="btnConfirmOk">ยืนยันการลบ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL: VIEW PHOTOS ========== -->
+  <div class="modal-overlay" id="modalPhotos">
+    <div class="modal-box modal-xl">
+      <div class="modal-header">
+        <h2>&#128247; รูปภาพการบริจาค</h2>
+        <button class="modal-close" onclick="closeModal('modalPhotos')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="photo-gallery" id="photoGalleryContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL: DONATION DETAIL ========== -->
+  <div class="modal-overlay" id="modalDonationDetail">
+    <div class="modal-box modal-xl">
+      <div class="modal-header">
+        <h2>&#128203; รายละเอียดการบริจาค</h2>
+        <button class="modal-close" onclick="closeModal('modalDonationDetail')">&times;</button>
+      </div>
+      <div class="modal-body" id="donDetailBody" style="max-height:70vh; overflow-y:auto;">
+        <p style="color:var(--text-muted); text-align:center; padding:2rem;">กำลังโหลด...</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalDonationDetail')">ปิด</button>
+        <button class="btn btn-primary" id="donDetailVerifyBtn" style="display:none;" onclick="verifyFromDetail()">&#10003; ตรวจสอบอุปกรณ์</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL: REQUEST DETAIL ========== -->
+  <div class="modal-overlay" id="modalRequestDetail">
+    <div class="modal-box modal-xl">
+      <div class="modal-header">
+        <h2>&#128203; รายละเอียดคำขอรับบริจาค</h2>
+        <button class="modal-close" onclick="closeModal('modalRequestDetail')">&times;</button>
+      </div>
+      <div class="modal-body" id="reqDetailBody" style="max-height:70vh; overflow-y:auto;">
+        <p style="color:var(--text-muted); text-align:center; padding:2rem;">กำลังโหลด...</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalRequestDetail')">ปิด</button>
+        <button class="btn btn-primary" id="reqDetailApproveBtn" style="display:none;" onclick="approveFromDetail()">&#10003; อนุมัติคำขอ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL: CORPORATE ACCOUNT ========== -->
+  <!-- ========== MODAL: ADD INQUIRY (ADMIN ENTRY) ========== -->
+  <div class="modal-overlay" id="modalAddInquiry">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h2>&#128221; บันทึกการติดต่อจากองค์กร</h2>
+        <button class="modal-close" onclick="closeModal('modalAddInquiry')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.25rem;background:#f8f9fa;border:1px solid var(--border);border-radius:8px;padding:0.7rem 1rem;">
+          &#128161; ใช้สำหรับบันทึกข้อมูลองค์กรที่ติดต่อเข้ามาทาง LINE / อีเมล / โทรศัพท์ — ระบบจะสร้าง Inquiry ที่มีสถานะ <strong>contacted</strong> ทันที
+        </p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="form-group">
+            <label>ชื่อองค์กร / บริษัท *</label>
+            <input type="text" id="aiqOrgName" class="form-control" placeholder="บริษัท ตัวอย่าง จำกัด">
+          </div>
+          <div class="form-group">
+            <label>เลขประจำตัวผู้เสียภาษี</label>
+            <input type="text" id="aiqTaxId" class="form-control" placeholder="0123456789012" maxlength="13" inputmode="numeric">
+          </div>
+          <div class="form-group">
+            <label>ชื่อผู้ติดต่อ *</label>
+            <input type="text" id="aiqContactName" class="form-control" placeholder="คุณ สมชาย ใจดี">
+          </div>
+          <div class="form-group">
+            <label>อีเมล *</label>
+            <input type="email" id="aiqEmail" class="form-control" placeholder="contact@company.com">
+          </div>
+          <div class="form-group">
+            <label>เบอร์โทรศัพท์</label>
+            <input type="text" id="aiqPhone" class="form-control" placeholder="081-234-5678">
+          </div>
+          <div class="form-group">
+            <label>แพ็คเกจที่สนใจ</label>
+            <select id="aiqPackage" class="form-control">
+              <option value="">-- ยังไม่ระบุ --</option>
+              <option value="S">Starter CSR (S) — 5–20 เครื่อง</option>
+              <option value="M">Professional ESG (M) — 21–70 เครื่อง</option>
+              <option value="L">Corporate Impact (L) — 71–150 เครื่อง</option>
+              <option value="unknown">ขอรับคำปรึกษาเพิ่มเติม</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>จำนวนเครื่องเบื้องต้น</label>
+            <input type="number" id="aiqDeviceCount" class="form-control" placeholder="เช่น 50" min="1">
+          </div>
+          <div class="form-group">
+            <label>ช่องทางที่ติดต่อมา</label>
+            <select id="aiqChannel" class="form-control">
+              <option value="LINE">LINE Official</option>
+              <option value="อีเมล">อีเมล</option>
+              <option value="โทรศัพท์">โทรศัพท์</option>
+              <option value="อื่นๆ">อื่นๆ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>สถานะเริ่มต้น</label>
+            <select id="aiqStatus" class="form-control">
+              <option value="contacted">contacted — ติดต่อแล้ว</option>
+              <option value="new">new — รับทราบแล้ว รอดำเนินการ</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:0.25rem">
+          <label>ที่อยู่องค์กร</label>
+          <input type="text" id="aiqAddress" class="form-control" placeholder="เลขที่ / ถนน / แขวง / เขต / จังหวัด">
+        </div>
+        <div class="form-group">
+          <label>บันทึกเพิ่มเติม / รายละเอียดที่พูดคุย</label>
+          <textarea id="aiqMessage" class="form-control" rows="3" style="resize:vertical" placeholder="เช่น มีคอมพิวเตอร์ตั้งโต๊ะ 30 เครื่อง + notebook 20 เครื่อง สนใจส่งไปโรงเรียนในจังหวัดเชียงใหม่..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalAddInquiry')">ยกเลิก</button>
+        <button class="btn btn-primary" id="btnSaveAdminInquiry" onclick="saveAdminInquiry()">&#10003; บันทึก Inquiry</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalCorporate">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h2>&#127970; บัญชีองค์กร</h2>
+        <button class="modal-close" onclick="closeModal('modalCorporate')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="corpId">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="form-group">
+            <label>ชื่อองค์กร / บริษัท *</label>
+            <input type="text" id="corpOrgName" class="form-control" placeholder="บริษัท ตัวอย่าง จำกัด">
+          </div>
+          <div class="form-group">
+            <label>เลขประจำตัวผู้เสียภาษี</label>
+            <input type="text" id="corpTaxId" class="form-control" placeholder="0123456789012">
+          </div>
+          <div class="form-group">
+            <label>ชื่อผู้ติดต่อ *</label>
+            <input type="text" id="corpContactName" class="form-control" placeholder="คุณ สมชาย">
+          </div>
+          <div class="form-group">
+            <label>อีเมล *</label>
+            <input type="email" id="corpEmail" class="form-control" placeholder="contact@company.com">
+          </div>
+          <div class="form-group">
+            <label>เบอร์โทร</label>
+            <input type="text" id="corpPhone" class="form-control" placeholder="081-234-5678">
+          </div>
+          <div class="form-group">
+            <label>แพ็คเกจ *</label>
+            <select id="corpPackage" class="form-control" onchange="onCorpPackageChange()">
+              <option value="">-- เลือก --</option>
+              <option value="S">Starter CSR (S) — 5–20 เครื่อง</option>
+              <option value="M">Professional ESG (M) — 21–70 เครื่อง</option>
+              <option value="L">Corporate Impact (L) — 71–150 เครื่อง</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>จำนวนเครื่องปัจจุบัน</label>
+            <input type="number" id="corpDeviceCount" class="form-control" value="0" min="0">
+          </div>
+          <div class="form-group">
+            <label>MS License ติดตั้งแล้ว</label>
+            <input type="number" id="corpMsInstalled" class="form-control" value="0" min="0">
+          </div>
+          <div class="form-group">
+            <label>วันเริ่มสัญญา</label>
+            <input type="date" id="corpStartDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>วันหมดสัญญา</label>
+            <input type="date" id="corpEndDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>สถานะ</label>
+            <select id="corpStatus" class="form-control">
+              <option value="active">active — ใช้งานอยู่</option>
+              <option value="expired">expired — หมดอายุ</option>
+              <option value="suspended">suspended — ระงับ</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>หมายเหตุ</label>
+          <textarea id="corpNotes" class="form-control" rows="2" style="resize:vertical"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalCorporate')">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="saveCorporate()">&#10003; บันทึก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL: ESG PDF REPORT ========== -->
+  <div class="modal-overlay" id="modalEsgReport">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h2>&#128196; สร้าง ESG Report</h2>
+        <button class="modal-close" onclick="closeModal('modalEsgReport')">&times;</button>
+      </div>
+      <div class="modal-body" id="esgReportBody">
+        <p style="color:var(--text-muted)">กำลังโหลดข้อมูล...</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalEsgReport')">ปิด</button>
+        <button class="btn btn-secondary" id="btnGenerateEsgWord" onclick="generateEsgWord()">&#128196; ดาวน์โหลด Word (.doc)</button>
+        <button class="btn btn-primary" id="btnGenerateEsg" onclick="generateEsgPdf()">&#128196; Generate PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/admin-script.js"></script>
+</body>
+
+</html>

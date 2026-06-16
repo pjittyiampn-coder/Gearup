@@ -1,0 +1,12 @@
+.vercel
+.env
+.env.local
+.env.*.local
+node_modules/
+.DS_Store
+.claude/
+CLAUDE.md
+task.md
+database/
+api/
+docs/
