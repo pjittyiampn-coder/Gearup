@@ -154,13 +154,13 @@ a {
 .nav-menu {
     display: flex;
     list-style: none;
-    gap: 2.5rem;
+    gap: 1.2rem;
     align-items: center;
 }
 
 .nav-link {
     font-family: var(--font-alt);
-    font-size: 1.05rem;
+    font-size: 0.88rem;
     font-weight: 500;
     color: var(--text-dark);
     letter-spacing: 0.5px;
