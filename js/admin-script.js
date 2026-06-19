@@ -4231,7 +4231,7 @@ async function openSchoolDetail(id) {
         const STATUS_TH = { submitted:'รอดำเนินการ', approved:'อนุมัติแล้ว', matching:'จับคู่', preparing:'เตรียมจัดส่ง', in_transit:'กำลังจัดส่ง', delivered:'ส่งแล้ว', completed:'เสร็จสิ้น' };
         const STATUS_COLOR = { submitted:'#f59e0b', approved:'#3b82f6', matching:'#8b5cf6', preparing:'#f97316', in_transit:'#06b6d4', delivered:'#10b981', completed:'#22c55e' };
 
-        const projectsHtml = requests.map(r => {
+        const projectsHtml = requests.map((r, idx) => {
             const conf = confMap[r.id];
             const statusLabel = STATUS_TH[r.fulfillment_status] || r.fulfillment_status || '—';
             const statusColor = STATUS_COLOR[r.fulfillment_status] || '#aaa';
@@ -4255,7 +4255,7 @@ async function openSchoolDetail(id) {
                 </div>` :
                 `<div style="margin-top:0.75rem;padding:0.75rem;background:#fafafa;border-radius:8px;border:1px solid #e0e0e0;font-size:0.88rem;color:#999;text-align:center;">⏳ ยังไม่มีการยืนยันจากโรงเรียน</div>`;
 
-            const detailId = `sdDetail_${(r.id || '').replace(/-/g,'')}`;
+            const detailId = `sdDetail_${idx}`;
             const hasConf = !!conf;
             return `
             <div style="border:1px solid ${hasConf ? '#a5d6a7' : '#e5e0d8'};border-radius:10px;overflow:hidden;margin-bottom:0.75rem;">
