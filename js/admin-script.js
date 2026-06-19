@@ -4039,11 +4039,12 @@ async function loadSchools() {
     _schoolsAll = data || [];
     _schoolsAll.forEach(s => { _schoolsCache[s.id] = s; });
 
-    // Load confirmation badges
+    // Load confirmation badges — only count NEW (unviewed) confirmations
     _schoolConfMap = {};
     try {
         const schoolIds = _schoolsAll.map(s => s.id).filter(Boolean);
         if (schoolIds.length > 0) {
+            const viewed = JSON.parse(localStorage.getItem('gearup_school_viewed') || '{}');
             const { data: reqLinks } = await supabaseClient
                 .from('requests')
                 .select('id, school_id')
@@ -4052,14 +4053,19 @@ async function loadSchools() {
             if (allReqIds.length > 0) {
                 const { data: confs } = await supabaseClient
                     .from('recipient_confirmations')
-                    .select('request_id')
+                    .select('request_id, confirmed_at')
                     .in('request_id', allReqIds);
-                const confSet = new Set((confs || []).map(c => c.request_id));
+                const confByReq = {};
+                (confs || []).forEach(c => { confByReq[c.request_id] = c.confirmed_at; });
                 (reqLinks || []).forEach(r => {
-                    if (confSet.has(r.id)) _schoolConfMap[r.school_id] = (_schoolConfMap[r.school_id] || 0) + 1;
+                    const confAt = confByReq[r.id];
+                    if (!confAt) return;
+                    const lastViewed = viewed[r.school_id];
+                    const isNew = !lastViewed || new Date(confAt) > new Date(lastViewed);
+                    if (isNew) _schoolConfMap[r.school_id] = (_schoolConfMap[r.school_id] || 0) + 1;
                 });
-                const schoolsWithConf = Object.keys(_schoolConfMap).length;
-                if (schoolsWithConf > 0) updateSidebarBadge('schools', schoolsWithConf, true);
+                const schoolsWithNew = Object.keys(_schoolConfMap).length;
+                if (schoolsWithNew > 0) updateSidebarBadge('schools', schoolsWithNew, true);
             }
         }
     } catch (e) { console.warn('School conf badge error:', e); }
@@ -4099,7 +4105,7 @@ function renderSchoolsTable(rows) {
         const dateStr   = s.created_at ? new Date(s.created_at).toLocaleDateString('th-TH') : '—';
         const confCount = _schoolConfMap[s.id] || 0;
         const confBadge = confCount > 0
-            ? ` <span style="background:#22c55e;color:#fff;border-radius:10px;padding:0.1rem 0.45rem;font-size:0.68rem;font-weight:700;vertical-align:middle;">✓ ${confCount}</span>`
+            ? ` <span class="conf-badge" style="background:#22c55e;color:#fff;border-radius:10px;padding:0.1rem 0.45rem;font-size:0.68rem;font-weight:700;vertical-align:middle;">✓ ${confCount}</span>`
             : '';
         return `<tr>
           <td style="font-weight:600;">${escapeHtml(s.name || '—')}</td>
@@ -4228,6 +4234,31 @@ async function openSchoolDetail(id) {
     const s = _schoolsCache[id];
     if (!s) return;
 
+    // Mark this school as viewed — clear its new-confirmation badge
+    if (_schoolConfMap[id]) {
+        _schoolConfMap[id] = 0;
+        // Remove badge from button in table
+        document.querySelectorAll('button').forEach(btn => {
+            if ((btn.getAttribute('onclick') || '').includes(`openSchoolDetail('${id}')`)) {
+                btn.querySelector('.conf-badge')?.remove();
+            }
+        });
+        // Update sidebar badge count
+        const remaining = Object.values(_schoolConfMap).filter(v => v > 0).length;
+        const sideItem = document.querySelector(`[onclick*="showSection('schools')"]`);
+        if (sideItem) {
+            const badge = sideItem.querySelector('.nav-badge');
+            if (remaining === 0 && badge) badge.remove();
+            else if (remaining > 0 && badge) { badge.textContent = remaining > 9 ? '9+' : remaining; badge.dataset.count = remaining; }
+        }
+    }
+    // Save viewed timestamp to localStorage
+    try {
+        const viewed = JSON.parse(localStorage.getItem('gearup_school_viewed') || '{}');
+        viewed[id] = new Date().toISOString();
+        localStorage.setItem('gearup_school_viewed', JSON.stringify(viewed));
+    } catch (_) {}
+
     const modal = document.getElementById('modalSchoolDetail');
     const title = document.getElementById('sdTitle');
     const body  = document.getElementById('sdBody');
@@ -4345,10 +4376,7 @@ async function openSchoolDetail(id) {
                         <div style="font-weight:700;font-size:1rem;">${escapeHtml(r.project_name || '(ไม่มีชื่อโครงการ)')}</div>
                         <div style="font-size:0.82rem;color:#888;margin-top:0.2rem;">${escapeHtml(r.tracking_id || '')} · ${escapeHtml(r.equipment_type || '—')} · ${r.quantity || 0} เครื่อง</div>
                     </div>
-                    <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0;">
-                        <span style="padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;background:${statusColor}22;color:${statusColor};">${statusLabel}</span>
-                        <span style="font-size:0.9rem;color:#aaa;">▾</span>
-                    </div>
+                    <span style="font-size:0.9rem;color:#aaa;flex-shrink:0;">▾</span>
                 </div>
                 <div id="${detailId}" style="display:none;padding:0 1rem 1rem;border-top:1px solid ${hasConf ? '#c8e6c9' : '#f0ebe3'};">
                     ${confirmHtml}
