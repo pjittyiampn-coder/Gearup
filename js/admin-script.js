@@ -4237,36 +4237,42 @@ async function openSchoolDetail(id) {
             const statusColor = STATUS_COLOR[r.fulfillment_status] || '#aaa';
 
             const confirmHtml = conf ? `
-                <div style="margin-top:0.75rem;padding:0.75rem;background:#f0faf0;border-radius:8px;border:1px solid #a5d6a7;">
-                    <div style="font-weight:600;color:#2f5233;margin-bottom:0.5rem;">✅ ยืนยันการรับแล้ว</div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1rem;font-size:0.88rem;">
-                        <div><span style="color:#666;">ผู้ยืนยัน:</span> <strong>${escapeHtml(conf.confirmed_by_name || '—')}</strong></div>
-                        <div><span style="color:#666;">เบอร์โทร:</span> ${escapeHtml(conf.confirmed_by_phone || '—')}</div>
-                        <div><span style="color:#666;">วันที่ยืนยัน:</span> ${conf.confirmed_at ? formatDate(conf.confirmed_at) : '—'}</div>
+                <div style="margin-top:0.75rem;background:#f0faf0;border-radius:8px;border:1px solid #a5d6a7;overflow:hidden;">
+                    <div style="padding:0.6rem 0.75rem;background:#2f5233;color:#fff;font-weight:600;font-size:0.9rem;">✅ ยืนยันการรับของแล้ว</div>
+                    <div style="padding:0.85rem;display:grid;gap:0.5rem;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem 1.5rem;font-size:0.9rem;">
+                            <div><span style="color:#666;font-size:0.8rem;">ผู้ยืนยัน</span><br><strong>${escapeHtml(conf.confirmed_by_name || '—')}</strong></div>
+                            <div><span style="color:#666;font-size:0.8rem;">เบอร์โทร</span><br>${escapeHtml(conf.confirmed_by_phone || '—')}</div>
+                            <div><span style="color:#666;font-size:0.8rem;">วันที่ยืนยัน</span><br>${conf.confirmed_at ? formatDate(conf.confirmed_at) : '—'}</div>
+                        </div>
+                        <div style="border-top:1px solid #c8e6c9;padding-top:0.6rem;display:flex;gap:1.5rem;font-size:0.88rem;flex-wrap:wrap;">
+                            <span style="color:${conf.received_confirmed ? '#2f5233' : '#c0392b'};font-weight:600;">${conf.received_confirmed ? '☑' : '☐'} ได้รับของครบ</span>
+                            <span style="color:${conf.items_match ? '#2f5233' : '#c0392b'};font-weight:600;">${conf.items_match ? '☑' : '☐'} ตรงตามรายการ</span>
+                            <span style="color:${conf.items_functional ? '#2f5233' : '#c0392b'};font-weight:600;">${conf.items_functional ? '☑' : '☐'} อุปกรณ์ใช้งานได้</span>
+                        </div>
+                        ${conf.notes ? `<div style="border-top:1px solid #c8e6c9;padding-top:0.6rem;font-size:0.88rem;"><span style="color:#666;">หมายเหตุ:</span> ${escapeHtml(conf.notes)}</div>` : ''}
                     </div>
-                    <div style="display:flex;gap:1.2rem;margin-top:0.5rem;font-size:0.88rem;flex-wrap:wrap;">
-                        <span style="color:${conf.received_confirmed ? '#2f5233' : '#c0392b'};">${conf.received_confirmed ? '☑' : '☐'} ได้รับของครบ</span>
-                        <span style="color:${conf.items_match ? '#2f5233' : '#c0392b'};">${conf.items_match ? '☑' : '☐'} ตรงตามรายการ</span>
-                        <span style="color:${conf.items_functional ? '#2f5233' : '#c0392b'};">${conf.items_functional ? '☑' : '☐'} อุปกรณ์ใช้งานได้</span>
-                    </div>
-                    ${conf.notes ? `<div style="margin-top:0.4rem;font-size:0.85rem;color:#555;">หมายเหตุ: ${escapeHtml(conf.notes)}</div>` : ''}
                 </div>` :
-                `<div style="margin-top:0.75rem;padding:0.6rem 0.75rem;background:#fafafa;border-radius:8px;border:1px solid #e0e0e0;font-size:0.88rem;color:#999;">⏳ ยังไม่มีการยืนยันจากโรงเรียน</div>`;
+                `<div style="margin-top:0.75rem;padding:0.75rem;background:#fafafa;border-radius:8px;border:1px solid #e0e0e0;font-size:0.88rem;color:#999;text-align:center;">⏳ ยังไม่มีการยืนยันจากโรงเรียน</div>`;
 
+            const detailId = `sdDetail_${r.id.replace(/-/g,'')}`;
+            const hasConf = !!conf;
             return `
-            <div style="border:1px solid #e5e0d8;border-radius:10px;padding:1rem;margin-bottom:0.75rem;">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap;">
+            <div style="border:1px solid ${hasConf ? '#a5d6a7' : '#e5e0d8'};border-radius:10px;overflow:hidden;margin-bottom:0.75rem;">
+                <div onclick="document.getElementById('${detailId}').style.display=document.getElementById('${detailId}').style.display==='none'?'block':'none'"
+                    style="padding:1rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;background:${hasConf ? '#f6fff6' : '#fff'};">
                     <div style="flex:1;min-width:0;">
                         <div style="font-weight:700;font-size:1rem;">${escapeHtml(r.project_name || '(ไม่มีชื่อโครงการ)')}</div>
                         <div style="font-size:0.82rem;color:#888;margin-top:0.2rem;">${escapeHtml(r.tracking_id || '')} · ${escapeHtml(r.equipment_type || '—')} · ${r.quantity || 0} เครื่อง</div>
                     </div>
                     <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0;">
                         <span style="padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;background:${statusColor}22;color:${statusColor};">${statusLabel}</span>
-                        <button class="btn btn-sm" style="background:#2f5233;color:#fff;border:none;padding:0.3rem 0.75rem;border-radius:6px;font-size:0.82rem;cursor:pointer;"
-                            onclick="closeSchoolDetail();openRequestDetail('${r.id}')">ดูรายละเอียด →</button>
+                        <span style="font-size:0.9rem;color:#aaa;">▾</span>
                     </div>
                 </div>
-                ${confirmHtml}
+                <div id="${detailId}" style="display:none;padding:0 1rem 1rem;border-top:1px solid ${hasConf ? '#c8e6c9' : '#f0ebe3'};">
+                    ${confirmHtml}
+                </div>
             </div>`;
         }).join('');
 
