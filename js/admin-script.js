@@ -313,7 +313,7 @@ const SECTION_TITLES = {
     audit: 'บันทึกกิจกรรม',
     corporate: 'องค์กร CSR & ESG',
     events: '📅 กิจกรรม / นัดหมาย',
-    schools: '🏫 โรงเรียน / องค์กรผู้รับ',
+    schools: '🏫 ยืนยันการรับอุปกรณ์',
 };
 
 function showSection(sectionName) {
@@ -4255,7 +4255,7 @@ async function openSchoolDetail(id) {
                 </div>` :
                 `<div style="margin-top:0.75rem;padding:0.75rem;background:#fafafa;border-radius:8px;border:1px solid #e0e0e0;font-size:0.88rem;color:#999;text-align:center;">⏳ ยังไม่มีการยืนยันจากโรงเรียน</div>`;
 
-            const detailId = `sdDetail_${r.id.replace(/-/g,'')}`;
+            const detailId = `sdDetail_${(r.id || '').replace(/-/g,'')}`;
             const hasConf = !!conf;
             return `
             <div style="border:1px solid ${hasConf ? '#a5d6a7' : '#e5e0d8'};border-radius:10px;overflow:hidden;margin-bottom:0.75rem;">
