@@ -4256,11 +4256,15 @@ async function openSchoolDetail(id) {
             return `
             <div style="border:1px solid #e5e0d8;border-radius:10px;padding:1rem;margin-bottom:0.75rem;">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap;">
-                    <div>
+                    <div style="flex:1;min-width:0;">
                         <div style="font-weight:700;font-size:1rem;">${escapeHtml(r.project_name || '(ไม่มีชื่อโครงการ)')}</div>
                         <div style="font-size:0.82rem;color:#888;margin-top:0.2rem;">${escapeHtml(r.tracking_id || '')} · ${escapeHtml(r.equipment_type || '—')} · ${r.quantity || 0} เครื่อง</div>
                     </div>
-                    <span style="padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;background:${statusColor}22;color:${statusColor};white-space:nowrap;">${statusLabel}</span>
+                    <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0;">
+                        <span style="padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;background:${statusColor}22;color:${statusColor};">${statusLabel}</span>
+                        <button class="btn btn-sm" style="background:#2f5233;color:#fff;border:none;padding:0.3rem 0.75rem;border-radius:6px;font-size:0.82rem;cursor:pointer;"
+                            onclick="closeSchoolDetail();openRequestDetail('${r.id}')">ดูรายละเอียด →</button>
+                    </div>
                 </div>
                 ${confirmHtml}
             </div>`;
