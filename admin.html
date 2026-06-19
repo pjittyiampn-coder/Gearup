@@ -1709,6 +1709,19 @@
           </div>
         </div>
 
+        <!-- School Detail Modal -->
+        <div id="modalSchoolDetail" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeSchoolDetail()">
+          <div class="modal-box" style="max-width:700px;max-height:85vh;overflow-y:auto;">
+            <div class="modal-header">
+              <h2 id="sdTitle">รายละเอียดโรงเรียน</h2>
+              <button class="modal-close" onclick="closeSchoolDetail()">✕</button>
+            </div>
+            <div class="modal-body" id="sdBody" style="padding:1.25rem;">
+              <div style="text-align:center;color:#aaa;padding:2rem;">กำลังโหลด...</div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </main>
   </div>

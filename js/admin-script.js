@@ -4082,6 +4082,8 @@ function renderSchoolsTable(rows) {
           <td style="color:#888;font-size:0.85rem;">${dateStr}</td>
           <td>
             <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+              <button class="btn btn-sm" style="background:#e8f4fd;color:#1565c0;border:1px solid #90caf9"
+                onclick="openSchoolDetail('${s.id}')">📋 ดูโครงการ</button>
               <button class="btn btn-sm" style="background:#f0f8f0;color:#2f5233;border:1px solid #a5c6a7"
                 onclick="openSchoolModal('${s.id}')">✏️ แก้ไข</button>
               <button class="btn btn-sm" style="background:#fff0f0;color:#c0392b;border:1px solid #e5a5a5"
@@ -4185,4 +4187,101 @@ async function deleteSchool(id, label) {
     if (error) { showAdminNotification('ลบไม่สำเร็จ: ' + error.message, 'error'); return; }
     showAdminNotification('ลบโรงเรียนสำเร็จ', 'success');
     loadSchools();
+}
+
+function closeSchoolDetail() {
+    document.getElementById('modalSchoolDetail').style.display = 'none';
+}
+
+async function openSchoolDetail(id) {
+    const s = _schoolsCache[id];
+    if (!s) return;
+
+    const modal = document.getElementById('modalSchoolDetail');
+    const title = document.getElementById('sdTitle');
+    const body  = document.getElementById('sdBody');
+
+    title.textContent = s.name || 'โรงเรียน/องค์กร';
+    body.innerHTML = '<div style="text-align:center;color:#aaa;padding:2rem;">กำลังโหลด...</div>';
+    modal.style.display = 'flex';
+
+    try {
+        const { data: requests, error: reqErr } = await supabaseClient
+            .from('requests')
+            .select('id, tracking_id, project_name, equipment_type, quantity, fulfillment_status, created_at')
+            .eq('school_id', id)
+            .order('created_at', { ascending: false });
+
+        if (reqErr) throw reqErr;
+
+        if (!requests || requests.length === 0) {
+            body.innerHTML = _sdSchoolInfo(s) + '<div style="text-align:center;color:#aaa;padding:2rem 0;">ยังไม่มีโครงการในระบบ</div>';
+            return;
+        }
+
+        const reqIds = requests.map(r => r.id);
+        const { data: confirmations } = await supabaseClient
+            .from('recipient_confirmations')
+            .select('request_id, confirmed_by_name, confirmed_by_phone, received_confirmed, items_match, items_functional, confirmed_at, notes')
+            .in('request_id', reqIds);
+
+        const confMap = {};
+        (confirmations || []).forEach(c => { confMap[c.request_id] = c; });
+
+        const STATUS_TH = { submitted:'รอดำเนินการ', approved:'อนุมัติแล้ว', matching:'จับคู่', preparing:'เตรียมจัดส่ง', in_transit:'กำลังจัดส่ง', delivered:'ส่งแล้ว', completed:'เสร็จสิ้น' };
+        const STATUS_COLOR = { submitted:'#f59e0b', approved:'#3b82f6', matching:'#8b5cf6', preparing:'#f97316', in_transit:'#06b6d4', delivered:'#10b981', completed:'#22c55e' };
+
+        const projectsHtml = requests.map(r => {
+            const conf = confMap[r.id];
+            const statusLabel = STATUS_TH[r.fulfillment_status] || r.fulfillment_status || '—';
+            const statusColor = STATUS_COLOR[r.fulfillment_status] || '#aaa';
+
+            const confirmHtml = conf ? `
+                <div style="margin-top:0.75rem;padding:0.75rem;background:#f0faf0;border-radius:8px;border:1px solid #a5d6a7;">
+                    <div style="font-weight:600;color:#2f5233;margin-bottom:0.5rem;">✅ ยืนยันการรับแล้ว</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1rem;font-size:0.88rem;">
+                        <div><span style="color:#666;">ผู้ยืนยัน:</span> <strong>${escapeHtml(conf.confirmed_by_name || '—')}</strong></div>
+                        <div><span style="color:#666;">เบอร์โทร:</span> ${escapeHtml(conf.confirmed_by_phone || '—')}</div>
+                        <div><span style="color:#666;">วันที่ยืนยัน:</span> ${conf.confirmed_at ? formatDate(conf.confirmed_at) : '—'}</div>
+                    </div>
+                    <div style="display:flex;gap:1.2rem;margin-top:0.5rem;font-size:0.88rem;flex-wrap:wrap;">
+                        <span style="color:${conf.received_confirmed ? '#2f5233' : '#c0392b'};">${conf.received_confirmed ? '☑' : '☐'} ได้รับของครบ</span>
+                        <span style="color:${conf.items_match ? '#2f5233' : '#c0392b'};">${conf.items_match ? '☑' : '☐'} ตรงตามรายการ</span>
+                        <span style="color:${conf.items_functional ? '#2f5233' : '#c0392b'};">${conf.items_functional ? '☑' : '☐'} อุปกรณ์ใช้งานได้</span>
+                    </div>
+                    ${conf.notes ? `<div style="margin-top:0.4rem;font-size:0.85rem;color:#555;">หมายเหตุ: ${escapeHtml(conf.notes)}</div>` : ''}
+                </div>` :
+                `<div style="margin-top:0.75rem;padding:0.6rem 0.75rem;background:#fafafa;border-radius:8px;border:1px solid #e0e0e0;font-size:0.88rem;color:#999;">⏳ ยังไม่มีการยืนยันจากโรงเรียน</div>`;
+
+            return `
+            <div style="border:1px solid #e5e0d8;border-radius:10px;padding:1rem;margin-bottom:0.75rem;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap;">
+                    <div>
+                        <div style="font-weight:700;font-size:1rem;">${escapeHtml(r.project_name || '(ไม่มีชื่อโครงการ)')}</div>
+                        <div style="font-size:0.82rem;color:#888;margin-top:0.2rem;">${escapeHtml(r.tracking_id || '')} · ${escapeHtml(r.equipment_type || '—')} · ${r.quantity || 0} เครื่อง</div>
+                    </div>
+                    <span style="padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;background:${statusColor}22;color:${statusColor};white-space:nowrap;">${statusLabel}</span>
+                </div>
+                ${confirmHtml}
+            </div>`;
+        }).join('');
+
+        body.innerHTML = _sdSchoolInfo(s) + `
+            <div style="font-weight:700;font-size:1rem;margin-bottom:0.75rem;color:#2f5233;">📋 โครงการทั้งหมด (${requests.length})</div>
+            ${projectsHtml}`;
+
+    } catch (e) {
+        body.innerHTML = `<div style="color:#c0392b;padding:1rem;">เกิดข้อผิดพลาด: ${e.message}</div>`;
+    }
+}
+
+function _sdSchoolInfo(s) {
+    return `
+    <div style="display:flex;gap:1rem;align-items:center;padding:0.75rem 1rem;background:#f5f7f5;border-radius:10px;margin-bottom:1.25rem;flex-wrap:wrap;">
+        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#2f5233,#5a9e6f);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.3rem;flex-shrink:0;">🏫</div>
+        <div>
+            <div style="font-weight:700;font-size:1.05rem;">${escapeHtml(s.name || '—')}</div>
+            <div style="font-size:0.85rem;color:#666;">${escapeHtml(s.email || '—')}${s.province ? ' · ' + escapeHtml(s.province) : ''}</div>
+        </div>
+    </div>`;
 }
