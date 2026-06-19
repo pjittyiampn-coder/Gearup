@@ -1853,33 +1853,6 @@
           <label for="statusModalNote">หมายเหตุ (ไม่บังคับ)</label>
           <textarea id="statusModalNote" class="form-control" rows="2" placeholder="บันทึกเพิ่มเติม..."></textarea>
         </div>
-        <!-- Shown only when status = distributed -->
-        <div id="statusConfirmSection" style="display:none; border:1px solid #d4a574; border-radius:8px; padding:1rem; margin-top:0.5rem; background:#fffaf4;">
-          <p style="font-weight:600; margin-bottom:0.75rem; color:#2f5233;">&#10003; ยืนยันการจัดส่งกับผู้รับ</p>
-          <div class="form-group" style="margin-bottom:0.6rem;">
-            <label style="font-size:0.85rem;">ชื่อผู้ยืนยัน (ฝั่งโรงเรียน/มูลนิธิ)</label>
-            <input type="text" id="scConfirmName" class="form-control" placeholder="ชื่อ-นามสกุล">
-          </div>
-          <div class="form-group" style="margin-bottom:0.6rem;">
-            <label style="font-size:0.85rem;">เบอร์โทร</label>
-            <input type="text" id="scConfirmPhone" class="form-control" placeholder="0xx-xxx-xxxx">
-          </div>
-          <div class="form-group" style="margin-bottom:0.4rem;">
-            <label style="font-size:0.85rem; display:flex; align-items:center; gap:0.5rem;">
-              <input type="checkbox" id="scReceivedConfirmed"> ผู้รับยืนยันว่าได้รับของแล้ว
-            </label>
-          </div>
-          <div class="form-group" style="margin-bottom:0.4rem;">
-            <label style="font-size:0.85rem; display:flex; align-items:center; gap:0.5rem;">
-              <input type="checkbox" id="scItemsMatch"> อุปกรณ์ตรงตามรายการที่แจ้ง
-            </label>
-          </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label style="font-size:0.85rem; display:flex; align-items:center; gap:0.5rem;">
-              <input type="checkbox" id="scItemsFunctional"> อุปกรณ์ใช้งานได้
-            </label>
-          </div>
-        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeModal('modalStatus')">ยกเลิก</button>

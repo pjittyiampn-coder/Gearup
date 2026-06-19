@@ -1128,22 +1128,10 @@ function openStatusModal(id, type, currentStatus, trackingId) {
         `<option value="${s}" ${s === currentStatus ? 'selected' : ''}>${STATUS_LABELS_TH[s] || s}</option>`
     ).join('');
 
-    // Reset confirmation section
-    const sec = document.getElementById('statusConfirmSection');
-    if (sec) {
-        sec.style.display = 'none';
-        ['scConfirmName', 'scConfirmPhone'].forEach((id) => { const el = document.getElementById(id); if (el) el.value = ''; });
-        ['scReceivedConfirmed', 'scItemsMatch', 'scItemsFunctional'].forEach((id) => { const el = document.getElementById(id); if (el) el.checked = false; });
-    }
-
     openModal('modalStatus');
 }
 
-function onStatusSelectChange() {
-    const val = document.getElementById('statusModalNew')?.value;
-    const sec = document.getElementById('statusConfirmSection');
-    if (sec) sec.style.display = val === 'distributed' ? 'block' : 'none';
-}
+function onStatusSelectChange() {}
 
 async function submitStatusUpdate() {
     const id = document.getElementById('statusModalId')?.value;
@@ -1165,36 +1153,6 @@ async function submitStatusUpdate() {
         const donationId = type === 'donation' ? id : null;
         const requestId = type === 'request' ? id : null;
         await insertTrackingTimeline(donationId, requestId, newStatus, note);
-
-        // When marking a donation as distributed, save recipient confirmation
-        if (type === 'donation' && newStatus === 'distributed') {
-            const confirmName = document.getElementById('scConfirmName')?.value?.trim() || null;
-            const confirmPhone = document.getElementById('scConfirmPhone')?.value?.trim() || null;
-            const receivedConfirmed = document.getElementById('scReceivedConfirmed')?.checked ?? false;
-            const itemsMatch = document.getElementById('scItemsMatch')?.checked ?? false;
-            const itemsFunctional = document.getElementById('scItemsFunctional')?.checked ?? false;
-
-            // Find the request this donation is directed to
-            const { data: donRow } = await supabaseClient
-                .from('donations')
-                .select('direct_donation_to_request_id')
-                .eq('id', id)
-                .single();
-
-            if (donRow?.direct_donation_to_request_id) {
-                const reqId = donRow.direct_donation_to_request_id;
-                await supabaseClient.from('recipient_confirmations').upsert({
-                    request_id: reqId,
-                    confirmed_by_name: confirmName,
-                    confirmed_by_phone: confirmPhone,
-                    received_confirmed: receivedConfirmed,
-                    items_match: itemsMatch,
-                    items_functional: itemsFunctional,
-                    notes: note || null,
-                    confirmed_at: new Date().toISOString(),
-                }, { onConflict: 'request_id' });
-            }
-        }
 
         showNotification('อัพเดทสถานะเรียบร้อย', 'success');
         closeModal('modalStatus');
