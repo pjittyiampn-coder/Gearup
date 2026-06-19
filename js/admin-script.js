@@ -4268,15 +4268,11 @@ async function openSchoolDetail(id) {
         const confMap = {};
         (confirmations || []).forEach(c => { confMap[c.request_id] = c; });
 
-        // Map: request_id → donation tracking_ids[]
-        const donTrackMap = {};
-        (donRows || []).forEach(d => {
-            const key = d.direct_donation_to_request_id;
-            if (!donTrackMap[key]) donTrackMap[key] = [];
-            donTrackMap[key].push(d.tracking_id);
-        });
+        // Map: donation.id → tracking_id
+        const donIdTrackMap = {};
+        (donRows || []).forEach(d => { donIdTrackMap[d.id] = d.tracking_id; });
 
-        // Collect donation_items IDs from all confirmation notes for serial number lookup
+        // Collect donation_items IDs from all confirmation notes
         const allItemIds = [];
         (confirmations || []).forEach(c => {
             try {
@@ -4285,14 +4281,18 @@ async function openSchoolDetail(id) {
             } catch (_) {}
         });
 
-        // Fetch serial numbers
+        // Fetch serial numbers AND donation_id (to find which donation each confirmed item belongs to)
         const itemSNMap = {};
+        const itemDonIdMap = {}; // item_id → donation_id
         if (allItemIds.length > 0) {
             const { data: diRows } = await supabaseClient
                 .from('donation_items')
-                .select('id, serial_number')
+                .select('id, serial_number, donation_id')
                 .in('id', allItemIds);
-            (diRows || []).forEach(di => { if (di.serial_number) itemSNMap[di.id] = di.serial_number; });
+            (diRows || []).forEach(di => {
+                if (di.serial_number) itemSNMap[di.id] = di.serial_number;
+                if (di.donation_id)   itemDonIdMap[di.id] = di.donation_id;
+            });
         }
 
         const STATUS_TH = { submitted:'รอดำเนินการ', approved:'อนุมัติแล้ว', matching:'จับคู่', preparing:'เตรียมจัดส่ง', in_transit:'กำลังจัดส่ง', delivered:'ส่งแล้ว', completed:'เสร็จสิ้น' };
@@ -4302,13 +4302,18 @@ async function openSchoolDetail(id) {
             const conf = confMap[r.id];
             const statusLabel = STATUS_TH[r.fulfillment_status] || r.fulfillment_status || '—';
             const statusColor = STATUS_COLOR[r.fulfillment_status] || '#aaa';
-            const donTracks = donTrackMap[r.id] || [];
 
             const confirmHtml = conf ? (() => {
                 const d = new Date(conf.confirmed_at);
                 const dateTime = conf.confirmed_at
                     ? `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} น.`
                     : '—';
+
+                // Only show tracking IDs of donations whose items appear in this confirmation
+                let confItemIds = [];
+                try { const p = JSON.parse(conf.notes || 'null'); if (p?.perItem) confItemIds = p.perItem.map(it => it.id).filter(Boolean); } catch (_) {}
+                const confTrackIds = [...new Set(confItemIds.map(id => donIdTrackMap[itemDonIdMap[id]]).filter(Boolean))];
+
                 return `
                 <div style="margin-top:0.75rem;background:#f0faf0;border-radius:8px;border:1px solid #a5d6a7;overflow:hidden;">
                     <div style="padding:0.6rem 0.75rem;background:#2f5233;color:#fff;font-weight:600;font-size:0.9rem;">✅ ยืนยันการรับของแล้ว</div>
@@ -4317,7 +4322,7 @@ async function openSchoolDetail(id) {
                             <div><span style="color:#666;font-size:0.78rem;">ผู้ยืนยัน</span><br><strong>${escapeHtml(conf.confirmed_by_name || '—')}</strong></div>
                             <div><span style="color:#666;font-size:0.78rem;">เบอร์โทร</span><br>${escapeHtml(conf.confirmed_by_phone || '—')}</div>
                             <div><span style="color:#666;font-size:0.78rem;">วันที่และเวลายืนยัน</span><br><strong>${dateTime}</strong></div>
-                            ${donTracks.length > 0 ? `<div><span style="color:#666;font-size:0.78rem;">รหัสพัสดุบริจาค</span><br><span style="font-family:monospace;font-size:0.82rem;">${donTracks.map(t => escapeHtml(t)).join(', ')}</span></div>` : ''}
+                            ${confTrackIds.length > 0 ? `<div><span style="color:#666;font-size:0.78rem;">รหัสพัสดุบริจาค</span><br><span style="font-family:monospace;font-size:0.82rem;">${confTrackIds.map(t => escapeHtml(t)).join(', ')}</span></div>` : ''}
                         </div>
                         <div style="border-top:1px solid #c8e6c9;padding-top:0.5rem;display:flex;gap:1.5rem;font-size:0.85rem;flex-wrap:wrap;">
                             <span style="color:${conf.received_confirmed ? '#2f5233' : '#c0392b'};font-weight:600;">${conf.received_confirmed ? '☑' : '☐'} ได้รับของครบ</span>
