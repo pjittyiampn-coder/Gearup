@@ -4020,8 +4020,9 @@ async function handleEventPhotoUpload(input) {
 // SCHOOLS SECTION
 // ============================================================
 
-let _schoolsCache = {};
-let _schoolsAll   = [];
+let _schoolsCache   = {};
+let _schoolsAll     = [];
+let _schoolConfMap  = {}; // school_id → count of confirmed requests
 
 async function loadSchools() {
     const wrap = document.getElementById('schoolsTableWrap');
@@ -4037,6 +4038,32 @@ async function loadSchools() {
 
     _schoolsAll = data || [];
     _schoolsAll.forEach(s => { _schoolsCache[s.id] = s; });
+
+    // Load confirmation badges
+    _schoolConfMap = {};
+    try {
+        const schoolIds = _schoolsAll.map(s => s.id).filter(Boolean);
+        if (schoolIds.length > 0) {
+            const { data: reqLinks } = await supabaseClient
+                .from('requests')
+                .select('id, school_id')
+                .in('school_id', schoolIds);
+            const allReqIds = (reqLinks || []).map(r => r.id);
+            if (allReqIds.length > 0) {
+                const { data: confs } = await supabaseClient
+                    .from('recipient_confirmations')
+                    .select('request_id')
+                    .in('request_id', allReqIds);
+                const confSet = new Set((confs || []).map(c => c.request_id));
+                (reqLinks || []).forEach(r => {
+                    if (confSet.has(r.id)) _schoolConfMap[r.school_id] = (_schoolConfMap[r.school_id] || 0) + 1;
+                });
+                const schoolsWithConf = Object.keys(_schoolConfMap).length;
+                if (schoolsWithConf > 0) updateSidebarBadge('schools', schoolsWithConf, true);
+            }
+        }
+    } catch (e) { console.warn('School conf badge error:', e); }
+
     renderSchoolsTable(_schoolsAll);
 }
 
@@ -4069,7 +4096,11 @@ function renderSchoolsTable(rows) {
       </tr></thead>
       <tbody>${rows.map(s => {
         const hasBanner = !!s.banner_url;
-        const dateStr = s.created_at ? new Date(s.created_at).toLocaleDateString('th-TH') : '—';
+        const dateStr   = s.created_at ? new Date(s.created_at).toLocaleDateString('th-TH') : '—';
+        const confCount = _schoolConfMap[s.id] || 0;
+        const confBadge = confCount > 0
+            ? ` <span style="background:#22c55e;color:#fff;border-radius:10px;padding:0.1rem 0.45rem;font-size:0.68rem;font-weight:700;vertical-align:middle;">✓ ${confCount}</span>`
+            : '';
         return `<tr>
           <td style="font-weight:600;">${escapeHtml(s.name || '—')}</td>
           <td style="font-family:monospace;font-size:0.85rem;">${escapeHtml(s.email || '—')}</td>
@@ -4083,7 +4114,7 @@ function renderSchoolsTable(rows) {
           <td>
             <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
               <button class="btn btn-sm" style="background:#e8f4fd;color:#1565c0;border:1px solid #90caf9"
-                onclick="openSchoolDetail('${s.id}')">📋 ดูโครงการ</button>
+                onclick="openSchoolDetail('${s.id}')">📋 ดูโครงการ${confBadge}</button>
               <button class="btn btn-sm" style="background:#f0f8f0;color:#2f5233;border:1px solid #a5c6a7"
                 onclick="openSchoolModal('${s.id}')">✏️ แก้ไข</button>
               <button class="btn btn-sm" style="background:#fff0f0;color:#c0392b;border:1px solid #e5a5a5"
@@ -4220,13 +4251,49 @@ async function openSchoolDetail(id) {
         }
 
         const reqIds = requests.map(r => r.id);
-        const { data: confirmations } = await supabaseClient
-            .from('recipient_confirmations')
-            .select('request_id, confirmed_by_name, confirmed_by_phone, received_confirmed, items_match, items_functional, confirmed_at, notes')
-            .in('request_id', reqIds);
 
+        // Parallel: confirmations + donations linked to these requests
+        const [{ data: confirmations }, { data: donRows }] = await Promise.all([
+            supabaseClient
+                .from('recipient_confirmations')
+                .select('request_id, confirmed_by_name, confirmed_by_phone, received_confirmed, items_match, items_functional, confirmed_at, notes')
+                .in('request_id', reqIds),
+            supabaseClient
+                .from('donations')
+                .select('id, tracking_id, direct_donation_to_request_id')
+                .in('direct_donation_to_request_id', reqIds),
+        ]);
+
+        // Map: request_id → confirmation
         const confMap = {};
         (confirmations || []).forEach(c => { confMap[c.request_id] = c; });
+
+        // Map: request_id → donation tracking_ids[]
+        const donTrackMap = {};
+        (donRows || []).forEach(d => {
+            const key = d.direct_donation_to_request_id;
+            if (!donTrackMap[key]) donTrackMap[key] = [];
+            donTrackMap[key].push(d.tracking_id);
+        });
+
+        // Collect donation_items IDs from all confirmation notes for serial number lookup
+        const allItemIds = [];
+        (confirmations || []).forEach(c => {
+            try {
+                const p = JSON.parse(c.notes || 'null');
+                if (p?.perItem) p.perItem.forEach(it => { if (it.id) allItemIds.push(it.id); });
+            } catch (_) {}
+        });
+
+        // Fetch serial numbers
+        const itemSNMap = {};
+        if (allItemIds.length > 0) {
+            const { data: diRows } = await supabaseClient
+                .from('donation_items')
+                .select('id, serial_number')
+                .in('id', allItemIds);
+            (diRows || []).forEach(di => { if (di.serial_number) itemSNMap[di.id] = di.serial_number; });
+        }
 
         const STATUS_TH = { submitted:'รอดำเนินการ', approved:'อนุมัติแล้ว', matching:'จับคู่', preparing:'เตรียมจัดส่ง', in_transit:'กำลังจัดส่ง', delivered:'ส่งแล้ว', completed:'เสร็จสิ้น' };
         const STATUS_COLOR = { submitted:'#f59e0b', approved:'#3b82f6', matching:'#8b5cf6', preparing:'#f97316', in_transit:'#06b6d4', delivered:'#10b981', completed:'#22c55e' };
@@ -4235,24 +4302,32 @@ async function openSchoolDetail(id) {
             const conf = confMap[r.id];
             const statusLabel = STATUS_TH[r.fulfillment_status] || r.fulfillment_status || '—';
             const statusColor = STATUS_COLOR[r.fulfillment_status] || '#aaa';
+            const donTracks = donTrackMap[r.id] || [];
 
-            const confirmHtml = conf ? `
+            const confirmHtml = conf ? (() => {
+                const d = new Date(conf.confirmed_at);
+                const dateTime = conf.confirmed_at
+                    ? `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} น.`
+                    : '—';
+                return `
                 <div style="margin-top:0.75rem;background:#f0faf0;border-radius:8px;border:1px solid #a5d6a7;overflow:hidden;">
                     <div style="padding:0.6rem 0.75rem;background:#2f5233;color:#fff;font-weight:600;font-size:0.9rem;">✅ ยืนยันการรับของแล้ว</div>
-                    <div style="padding:0.85rem;display:grid;gap:0.5rem;">
+                    <div style="padding:0.85rem;display:grid;gap:0.6rem;">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem 1.5rem;font-size:0.9rem;">
-                            <div><span style="color:#666;font-size:0.8rem;">ผู้ยืนยัน</span><br><strong>${escapeHtml(conf.confirmed_by_name || '—')}</strong></div>
-                            <div><span style="color:#666;font-size:0.8rem;">เบอร์โทร</span><br>${escapeHtml(conf.confirmed_by_phone || '—')}</div>
-                            <div><span style="color:#666;font-size:0.8rem;">วันที่ยืนยัน</span><br>${conf.confirmed_at ? formatDate(conf.confirmed_at) : '—'}</div>
+                            <div><span style="color:#666;font-size:0.78rem;">ผู้ยืนยัน</span><br><strong>${escapeHtml(conf.confirmed_by_name || '—')}</strong></div>
+                            <div><span style="color:#666;font-size:0.78rem;">เบอร์โทร</span><br>${escapeHtml(conf.confirmed_by_phone || '—')}</div>
+                            <div><span style="color:#666;font-size:0.78rem;">วันที่และเวลายืนยัน</span><br><strong>${dateTime}</strong></div>
+                            ${donTracks.length > 0 ? `<div><span style="color:#666;font-size:0.78rem;">รหัสพัสดุบริจาค</span><br><span style="font-family:monospace;font-size:0.82rem;">${donTracks.map(t => escapeHtml(t)).join(', ')}</span></div>` : ''}
                         </div>
-                        <div style="border-top:1px solid #c8e6c9;padding-top:0.6rem;display:flex;gap:1.5rem;font-size:0.88rem;flex-wrap:wrap;">
+                        <div style="border-top:1px solid #c8e6c9;padding-top:0.5rem;display:flex;gap:1.5rem;font-size:0.85rem;flex-wrap:wrap;">
                             <span style="color:${conf.received_confirmed ? '#2f5233' : '#c0392b'};font-weight:600;">${conf.received_confirmed ? '☑' : '☐'} ได้รับของครบ</span>
                             <span style="color:${conf.items_match ? '#2f5233' : '#c0392b'};font-weight:600;">${conf.items_match ? '☑' : '☐'} ตรงตามรายการ</span>
                             <span style="color:${conf.items_functional ? '#2f5233' : '#c0392b'};font-weight:600;">${conf.items_functional ? '☑' : '☐'} อุปกรณ์ใช้งานได้</span>
                         </div>
-                        ${conf.notes ? `<div style="border-top:1px solid #c8e6c9;padding-top:0.6rem;font-size:0.88rem;"><span style="color:#666;">หมายเหตุ:</span> ${escapeHtml(conf.notes)}</div>` : ''}
+                        ${_sdPerItemHtml(conf.notes, itemSNMap)}
                     </div>
-                </div>` :
+                </div>`;
+            })() :
                 `<div style="margin-top:0.75rem;padding:0.75rem;background:#fafafa;border-radius:8px;border:1px solid #e0e0e0;font-size:0.88rem;color:#999;text-align:center;">⏳ ยังไม่มีการยืนยันจากโรงเรียน</div>`;
 
             const detailId = `sdDetail_${idx}`;
@@ -4283,6 +4358,37 @@ async function openSchoolDetail(id) {
     } catch (e) {
         body.innerHTML = `<div style="color:#c0392b;padding:1rem;">เกิดข้อผิดพลาด: ${e.message}</div>`;
     }
+}
+
+function _sdPerItemHtml(notesJson, itemSNMap) {
+    let perItem = [];
+    try {
+        const p = JSON.parse(notesJson || 'null');
+        if (Array.isArray(p?.perItem)) perItem = p.perItem;
+    } catch (_) {}
+    if (perItem.length === 0) return '';
+    const DEVICE_TH = { Computer:'คอมพิวเตอร์', Laptop:'แล็ปท็อป', Tablet:'แท็บเล็ต', Phone:'โทรศัพท์', Other:'อื่นๆ' };
+    const rows = perItem.map(it => {
+        const typeTh = DEVICE_TH[it.type] || it.type || '—';
+        const detail  = [it.brand, it.model].filter(Boolean).join(' ');
+        const sn      = (it.id && itemSNMap[it.id]) ? `S/N:${itemSNMap[it.id]}` : '';
+        const note    = it.note || '';
+        const isOk    = it.status !== 'defective';
+        return `<div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;
+            background:#fff;border:1px solid ${isOk ? '#c8e6c9' : '#f5c6cb'};border-radius:6px;
+            padding:0.3rem 0.65rem;font-size:0.82rem;">
+            <div style="flex:1;min-width:0;">
+                <strong>${escapeHtml(typeTh)}</strong>${detail ? ` · <span style="color:#555;">${escapeHtml(detail)}</span>` : ''}
+                ${sn ? `<span style="font-family:monospace;color:#777;font-size:0.78rem;"> · ${escapeHtml(sn)}</span>` : ''}
+                ${note ? `<span style="color:#999;font-size:0.78rem;"> — ${escapeHtml(note)}</span>` : ''}
+            </div>
+            <span style="color:${isOk ? '#2f5233' : '#c0392b'};font-weight:700;flex-shrink:0;font-size:0.78rem;">${isOk ? '✓ ปกติ' : '✗ มีปัญหา'}</span>
+        </div>`;
+    }).join('');
+    return `<div style="border-top:1px solid #c8e6c9;padding-top:0.6rem;margin-top:0.2rem;">
+        <div style="font-size:0.78rem;color:#2f5233;font-weight:600;margin-bottom:0.4rem;">รายการอุปกรณ์</div>
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">${rows}</div>
+    </div>`;
 }
 
 function _sdSchoolInfo(s) {

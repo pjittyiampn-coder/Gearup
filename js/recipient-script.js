@@ -711,6 +711,15 @@ async function submitCardConfirm(requestId, donationId, startIdx, count, donIdx)
 
         showNotif(allOk ? 'ยืนยันเรียบร้อย — สถานะอัพเดทเป็น เสร็จสิ้น' : 'ยืนยันเรียบร้อย — มีอุปกรณ์ที่ต้องตรวจสอบ', 'success');
 
+        // Notify admins via SECURITY DEFINER RPC
+        try {
+            await rcpClient.rpc('notify_admins_on_confirmation', {
+                p_request_id:   requestId,
+                p_school_name:  rcpSession?.orgName || 'โรงเรียน',
+                p_project_name: document.getElementById('sideProject')?.textContent?.trim() || '—',
+            });
+        } catch (_) {}
+
         // Re-fetch and re-render full dashboard to reflect updated stats
         if (rcpSession) {
             await fetchAndRender(rcpSession.requestId);
