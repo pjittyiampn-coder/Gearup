@@ -1719,6 +1719,12 @@ function renderDonationItems() {
         const reqCondLabel = reqSpec?.condition && reqSpec.condition !== 'ยอมรับทุกสภาพ' ? reqSpec.condition : null;
         const reqOsLabel = reqSpec?.os && reqSpec.os !== 'any' ? (reqSpec.os === 'ios' ? 'iOS (iPhone)' : 'Android') : null;
 
+        // Filter brand list to match OS requirement
+        const filteredBrands = reqSpec?.os === 'ios'     ? brands.filter(b => b === 'Apple') :
+                               reqSpec?.os === 'android' ? brands.filter(b => b !== 'Apple') :
+                               brands;
+        const osLocked = !!(reqSpec?.os && reqSpec.os !== 'any');
+
         // Spec requirement banner shown when donating to a request that has a minimum spec
         const specBannerParts = [];
         if (reqSpec && reqMinTier > 0) specBannerParts.push(reqSpec.spec_label || SPEC_TIER_LABEL[reqSpec.spec]);
@@ -1774,12 +1780,13 @@ function renderDonationItems() {
             <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                 <div class="form-group">
                     <label>ยี่ห้อ *</label>
-                    ${item.device_type && brands.length > 0 ? `
+                    ${item.device_type && filteredBrands.length > 0 ? `
                         <select onchange="onBrandChange(${item.id}, this.value)" class="brand-select">
                             <option value="">-- เลือกยี่ห้อ --</option>
-                            ${brands.map(b => `<option value="${b}" ${item.device_brand === b ? 'selected' : ''}>${b}</option>`).join('')}
-                            <option value="__other__" ${isCustomBrand ? 'selected' : ''}>อื่นๆ (กรอกเอง)</option>
+                            ${filteredBrands.map(b => `<option value="${b}" ${item.device_brand === b ? 'selected' : ''}>${b}</option>`).join('')}
+                            ${!osLocked ? `<option value="__other__" ${isCustomBrand ? 'selected' : ''}>อื่นๆ (กรอกเอง)</option>` : ''}
                         </select>
+                        ${osLocked && filteredBrands.length === 1 ? `<small style="color:#2f5233;font-size:0.78rem;">🔒 OS ที่กำหนด: ${reqOsLabel} — รับเฉพาะ ${filteredBrands[0]} เท่านั้น</small>` : ''}
                         ${isCustomBrand ? `<input type="text" placeholder="กรอกยี่ห้อ..." class="custom-brand-input"
                             value="${item._customBrand || ''}"
                             onchange="updateDonationItem(${item.id}, '_customBrand', this.value); updateDonationItem(${item.id}, 'device_brand', '__other__')">` : ''}
