@@ -111,21 +111,17 @@ function onProvinceChange() {
     districtSel.disabled = false;
 }
 function onDonorTypeChange() {
-    const type = document.getElementById('donorType')?.value || '';
-    const isIndividual = type === 'บุคคลทั่วไป' || type === 'นักเรียน/นักศึกษา';
-    const input = document.getElementById('donorOrgName');
-    const label = document.getElementById('donorOrgNameLabel');
+    const type  = document.getElementById('donorType')?.value || '';
+    const isOrg = type === 'บริษัท/องค์กร';
     const group = document.getElementById('donorOrgNameGroup');
-    if (!input) return;
-    if (isIndividual) {
-        input.disabled = true;
-        input.value = '';
-        if (label) label.textContent = 'ชื่อองค์กร (ไม่ใช้สำหรับบุคคลทั่วไป)';
-        if (group) group.style.opacity = '0.4';
+    const input = document.getElementById('donorOrgName');
+    if (!group) return;
+    if (isOrg) {
+        group.style.display = '';
+        if (input) input.disabled = false;
     } else {
-        input.disabled = false;
-        if (label) label.textContent = 'ชื่อองค์กร (ถ้ามี)';
-        if (group) group.style.opacity = '1';
+        group.style.display = 'none';
+        if (input) { input.disabled = true; input.value = ''; }
     }
 }
 
