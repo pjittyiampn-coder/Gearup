@@ -343,6 +343,19 @@ a {
     margin-bottom: 1.5rem;
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     letter-spacing: 1px;
+    color: var(--white);
+}
+
+/* Force white on all headings inside hero areas */
+.hero-content h1,
+.hero-content h2,
+.hero-content h3,
+.hero-content p,
+.profile-hero h1,
+.profile-hero h2,
+.profile-hero h3,
+.profile-hero p {
+    color: var(--white);
 }
 
 .hero-subtitle {
