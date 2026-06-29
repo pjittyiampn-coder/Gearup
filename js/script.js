@@ -311,6 +311,15 @@ function initializeApp() {
     });
 }
 
+// === KNOWLEDGE FILTER ===
+function kbFilter(btn, cat) {
+    document.querySelectorAll('.kb-tab').forEach(t => t.classList.remove('kb-tab-active'));
+    btn.classList.add('kb-tab-active');
+    document.querySelectorAll('.kb-item').forEach(el => {
+        el.style.display = (cat === 'all' || el.dataset.cat === cat) ? '' : 'none';
+    });
+}
+
 // === NAVIGATION ===
 function initializeNavigation() {
     const navbar = document.getElementById('navbar');
@@ -328,16 +337,37 @@ function initializeNavigation() {
         _updateStickyLabel();
     }, { passive: true });
 
+    // Overlay backdrop for mobile menu
+    const navOverlay = document.createElement('div');
+    navOverlay.id = 'navOverlay';
+    navOverlay.className = 'nav-overlay';
+    document.body.appendChild(navOverlay);
+
+    function closeNavMenu() {
+        navMenu.classList.remove('active');
+        navOverlay.classList.remove('active');
+        const spans = hamburger.querySelectorAll('span');
+        spans[0].style.transform = '';
+        spans[1].style.opacity = '1';
+        spans[2].style.transform = '';
+    }
+
+    function openNavMenu() {
+        navMenu.classList.add('active');
+        navOverlay.classList.add('active');
+        const spans = hamburger.querySelectorAll('span');
+        spans[0].style.transform = 'rotate(45deg) translate(8px, 8px)';
+        spans[1].style.opacity = '0';
+        spans[2].style.transform = 'rotate(-45deg) translate(8px, -8px)';
+    }
+
     // Hamburger menu
     hamburger?.addEventListener('click', () => {
-        navMenu.classList.toggle('active');
-
-        // Animate hamburger
-        const spans = hamburger.querySelectorAll('span');
-        spans[0].style.transform = navMenu.classList.contains('active') ? 'rotate(45deg) translate(8px, 8px)' : '';
-        spans[1].style.opacity = navMenu.classList.contains('active') ? '0' : '1';
-        spans[2].style.transform = navMenu.classList.contains('active') ? 'rotate(-45deg) translate(8px, -8px)' : '';
+        navMenu.classList.contains('active') ? closeNavMenu() : openNavMenu();
     });
+
+    // Close on overlay click
+    navOverlay.addEventListener('click', closeNavMenu);
 
     // Navigation link clicks
     navLinks.forEach(link => {
@@ -346,9 +376,21 @@ function initializeNavigation() {
             if (page) {
                 e.preventDefault();
                 navigateToPage(page);
-                navMenu.classList.remove('active');
+                closeNavMenu();
             } else if (link.getAttribute('href') === '#') {
                 e.preventDefault();
+            }
+        });
+    });
+
+    // Mobile dropdown toggle (tap to expand accordion)
+    document.querySelectorAll('.nav-menu .dropdown-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024) {
+                e.preventDefault();
+                e.stopPropagation();
+                const dropdown = toggle.closest('.dropdown');
+                dropdown.classList.toggle('open');
             }
         });
     });
@@ -360,6 +402,9 @@ function initializeNavigation() {
             if (page) {
                 e.preventDefault();
                 navigateToPage(page);
+                closeNavMenu();
+                // close accordion too
+                document.querySelectorAll('.nav-menu .dropdown').forEach(d => d.classList.remove('open'));
             }
         });
     });
@@ -397,24 +442,24 @@ function navigateToPage(pageName) {
 }
 
 function _updateStickyLabel() {
-    // Donate sticky bar — only while donateFormView is shown and past its heading
+    // Donate sticky bar — show after section heading scrolls off the top
     const donateBar = document.getElementById('donateStepBar');
     if (donateBar) {
         const formView = document.getElementById('donateFormView');
         const h2 = document.querySelector('#donateFormView .section-title');
         const formVisible = formView && formView.style.display !== 'none';
-        const pastHeading = formVisible && h2 && h2.getBoundingClientRect().bottom < 82;
-        donateBar.classList.toggle('psl-visible', !!pastHeading);
+        const show = formVisible && h2 && h2.getBoundingClientRect().bottom < 0;
+        donateBar.classList.toggle('psl-visible', !!show);
     }
 
-    // Request sticky bar — while request page is active
+    // Request sticky bar — show after section heading scrolls off the top
     const reqBar = document.getElementById('reqStepBar');
     if (reqBar) {
         const reqPage = document.getElementById('request');
         const h2 = document.querySelector('#request .section-title');
         const pageActive = reqPage && reqPage.classList.contains('active');
-        const pastHeading = pageActive && h2 && h2.getBoundingClientRect().bottom < 82;
-        reqBar.classList.toggle('psl-visible', !!pastHeading);
+        const show = pageActive && h2 && h2.getBoundingClientRect().bottom < 0;
+        reqBar.classList.toggle('psl-visible', !!show);
     }
 }
 
