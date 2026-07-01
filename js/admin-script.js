@@ -28,6 +28,7 @@ const currentPage = {
 };
 let verifyDonationId = null;
 let confirmResolve = null;
+let _currentTrendView = 'week';
 
 // Row caches — keyed by row.id, used to pass data to modals without JSON-in-onclick
 let _donationRowCache = {};
@@ -493,7 +494,7 @@ async function loadDashboardStats() {
         const [
             allDonationsRes, pendingRes, requestsRes, recycleRes, carbonRes, usersRes,
             recentDonationsRes, deviceTypesRes, requestStatusRes, corpInquiriesRes,
-            schoolRequestsRes, schoolDonationsRes,
+            schoolRequestsRes, schoolDonationsRes, staleRes,
         ] = await Promise.all([
             supabaseClient.from('donations').select('id, current_status, created_at', { count: 'exact' }),
             supabaseClient.from('donations').select('id', { count: 'exact', head: true }).eq('current_status', 'submitted'),
@@ -507,6 +508,12 @@ async function loadDashboardStats() {
             supabaseClient.from('corporate_inquiries').select('id', { count: 'exact', head: true }).eq('status', 'new'),
             supabaseClient.from('requests').select('id, project_name, contact_name, quantity').eq('is_public_post', true).not('quantity', 'is', null).order('quantity', { ascending: false }).limit(20),
             supabaseClient.from('donations').select('direct_donation_to_request_id, total_items').not('direct_donation_to_request_id', 'is', null).in('current_status', ['distributed','completed','ready','processing','data_wiped','picked_up','scheduled','verified']),
+            supabaseClient.from('donations')
+                .select('id, tracking_id, donor_name, current_status, updated_at, total_items')
+                .not('current_status', 'in', '("completed","distributed")')
+                .lt('updated_at', new Date(Date.now() - 7 * 86400000).toISOString())
+                .order('updated_at', { ascending: true })
+                .limit(20),
         ]);
 
         // ── KPI cards ──
@@ -574,6 +581,9 @@ async function loadDashboardStats() {
         // ── School aid chart ──
         renderSchoolAidChart(schoolRequestsRes.data || [], schoolDonationsRes.data || []);
 
+        // ── Stale donations report ──
+        renderStaleReport(staleRes.data || []);
+
         // ── Key metrics ──
         const fulfilledRequests = (requestsRes.data || []).filter(r => r.fulfillment_status === 'fulfilled').length;
         renderKeyMetrics({
@@ -634,14 +644,89 @@ function renderStatusDonut(statusCounts) {
 }
 
 function renderWeeklyBar(dayCounts) {
-    const canvas = document.getElementById('weeklyBarChart');
-    if (!canvas) return;
-
     const labels = Object.keys(dayCounts).map(d => {
         const dt = new Date(d + 'T12:00:00');
         return dt.toLocaleDateString('th-TH', { month: 'short', day: 'numeric' });
     });
     const values = Object.values(dayCounts);
+    renderTrendChart(labels, values, 'การบริจาครายวัน');
+}
+
+async function switchTrendView(view) {
+    _currentTrendView = view;
+    ['week', '4week', '6month'].forEach(v => {
+        const btn = document.getElementById('trendBtn-' + v);
+        if (btn) btn.classList.toggle('active', v === view);
+    });
+    await loadTrendData(view);
+}
+
+async function loadTrendData(view) {
+    const canvas = document.getElementById('weeklyBarChart');
+    if (!canvas) return;
+
+    const daysBack = view === '6month' ? 180 : view === '4week' ? 28 : 7;
+    const fromDate = new Date(Date.now() - daysBack * 86400000).toISOString();
+
+    const { data } = await supabaseClient.from('donations')
+        .select('created_at')
+        .gte('created_at', fromDate);
+
+    const donations = data || [];
+
+    if (view === 'week') {
+        const buckets = {};
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(Date.now() - i * 86400000);
+            buckets[d.toISOString().slice(0, 10)] = 0;
+        }
+        donations.forEach(r => {
+            const day = r.created_at.slice(0, 10);
+            if (day in buckets) buckets[day]++;
+        });
+        const labels = Object.keys(buckets).map(d => {
+            const dt = new Date(d + 'T12:00:00');
+            return dt.toLocaleDateString('th-TH', { month: 'short', day: 'numeric' });
+        });
+        renderTrendChart(labels, Object.values(buckets), 'การบริจาครายวัน');
+
+    } else if (view === '4week') {
+        const labels = [];
+        const values = [];
+        for (let w = 3; w >= 0; w--) {
+            const weekEnd = new Date(Date.now() - w * 7 * 86400000);
+            const weekStart = new Date(weekEnd.getTime() - 7 * 86400000);
+            const label = weekStart.toLocaleDateString('th-TH', { month: 'short', day: 'numeric' })
+                + '–' + weekEnd.toLocaleDateString('th-TH', { day: 'numeric' });
+            labels.push(label);
+            const count = donations.filter(r => {
+                const t = new Date(r.created_at).getTime();
+                return t >= weekStart.getTime() && t < weekEnd.getTime();
+            }).length;
+            values.push(count);
+        }
+        renderTrendChart(labels, values, 'การบริจาครายสัปดาห์');
+
+    } else {
+        const labels = [];
+        const values = [];
+        for (let m = 5; m >= 0; m--) {
+            const ref = new Date();
+            ref.setDate(1);
+            ref.setMonth(ref.getMonth() - m);
+            const monthKey = ref.toISOString().slice(0, 7);
+            const label = ref.toLocaleDateString('th-TH', { month: 'short', year: '2-digit' });
+            labels.push(label);
+            const count = donations.filter(r => r.created_at.slice(0, 7) === monthKey).length;
+            values.push(count);
+        }
+        renderTrendChart(labels, values, 'การบริจาครายเดือน');
+    }
+}
+
+function renderTrendChart(labels, values, datasetLabel) {
+    const canvas = document.getElementById('weeklyBarChart');
+    if (!canvas) return;
     const maxVal = Math.max(...values, 1);
 
     if (_weeklyBarChart) { _weeklyBarChart.destroy(); _weeklyBarChart = null; }
@@ -650,7 +735,7 @@ function renderWeeklyBar(dayCounts) {
         data: {
             labels,
             datasets: [{
-                label: 'การบริจาค',
+                label: datasetLabel,
                 data: values,
                 backgroundColor: values.map((v, i) => i === values.length - 1 ? '#2f5233' : 'rgba(47,82,51,0.25)'),
                 borderRadius: 6,
@@ -660,14 +745,48 @@ function renderWeeklyBar(dayCounts) {
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false }, tooltip: {
-                callbacks: { label: ctx => ` ${ctx.raw} การบริจาค` }
+                callbacks: { label: ctx => ` ${ctx.raw} รายการ` }
             }},
             scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 0 } },
                 y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1, precision: 0, font: { size: 11 } }, min: 0, suggestedMax: maxVal + 1 },
             },
         },
     });
+}
+
+function renderStaleReport(donations) {
+    const card = document.getElementById('staleReportCard');
+    const body = document.getElementById('staleReportBody');
+    const badge = document.getElementById('staleCountBadge');
+    if (!card || !body) return;
+
+    if (!donations.length) {
+        card.style.display = 'none';
+        return;
+    }
+
+    card.style.display = '';
+    if (badge) badge.textContent = `${donations.length} รายการ`;
+
+    const now = Date.now();
+    const rows = donations.map(d => {
+        const days = Math.floor((now - new Date(d.updated_at).getTime()) / 86400000);
+        const ageClass = days >= 30 ? 'crit' : days >= 14 ? 'warn' : 'mild';
+        const statusTh = STATUS_LABELS_TH[d.current_status] || d.current_status;
+        return `<tr>
+            <td><a href="#" style="color:var(--primary);font-weight:600;" onclick="gsGoTo('donations','${d.id}','donationSearch','${d.tracking_id || ''}');return false;">${d.tracking_id || '—'}</a></td>
+            <td>${d.donor_name || '—'}</td>
+            <td><span class="status-badge status-${d.current_status}">${statusTh}</span></td>
+            <td>${d.total_items || '—'} ชิ้น</td>
+            <td><span class="stale-age ${ageClass}">ค้าง ${days} วัน</span></td>
+        </tr>`;
+    }).join('');
+
+    body.innerHTML = `<table class="stale-table">
+        <thead><tr><th>Tracking ID</th><th>ผู้บริจาค</th><th>สถานะ</th><th>จำนวน</th><th>ระยะเวลาค้าง</th></tr></thead>
+        <tbody>${rows}</tbody>
+    </table>`;
 }
 
 function renderDeviceBars(deviceCounts) {

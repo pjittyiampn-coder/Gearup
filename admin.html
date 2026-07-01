@@ -1186,6 +1186,23 @@
     @media (max-width: 700px) {
       .dash-mid-row { grid-template-columns: 1fr; }
     }
+
+    /* Stale donations report */
+    .stale-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+    .stale-table th { padding:0.5rem 1rem; text-align:left; color:var(--text-muted); font-weight:600; font-size:0.75rem; border-bottom:1px solid var(--border); }
+    .stale-table td { padding:0.55rem 1rem; border-bottom:1px solid #f5f5f5; vertical-align:middle; }
+    .stale-table tr:last-child td { border-bottom:none; }
+    .stale-age { display:inline-block; font-size:0.72rem; font-weight:700; padding:0.15rem 0.55rem; border-radius:20px; }
+    .stale-age.mild  { background:#fef3c7; color:#92400e; }
+    .stale-age.warn  { background:#ffedd5; color:#9a3412; }
+    .stale-age.crit  { background:#fee2e2; color:#991b1b; }
+    .stale-empty { padding:1.2rem 1rem; text-align:center; color:#22c55e; font-size:0.85rem; font-weight:600; }
+
+    /* Trend chart toggle */
+    .trend-toggle { display:flex; gap:0.25rem; }
+    .trend-btn { background:transparent; border:1px solid var(--border); border-radius:20px; padding:0.2rem 0.7rem; font-size:0.75rem; font-family:'Crimson Text',serif; color:var(--text-muted); cursor:pointer; transition:all 0.15s; }
+    .trend-btn:hover { border-color:var(--primary); color:var(--primary); }
+    .trend-btn.active { background:var(--primary); border-color:var(--primary); color:#fff; font-weight:600; }
   </style>
 </head>
 
@@ -1367,7 +1384,14 @@
               </div>
             </div>
             <div class="card" style="margin-bottom:0">
-              <div class="card-header"><span class="card-title">&#128200; การบริจาค 7 วันล่าสุด</span></div>
+              <div class="card-header">
+                <span class="card-title">&#128200; ทิศทางการบริจาค</span>
+                <div class="trend-toggle" id="trendToggle">
+                  <button class="trend-btn active" id="trendBtn-week" onclick="switchTrendView('week')">7 วัน</button>
+                  <button class="trend-btn" id="trendBtn-4week" onclick="switchTrendView('4week')">4 สัปดาห์</button>
+                  <button class="trend-btn" id="trendBtn-6month" onclick="switchTrendView('6month')">6 เดือน</button>
+                </div>
+              </div>
               <div class="dash-chart-inner" style="height:200px;position:relative;">
                 <canvas id="weeklyBarChart"></canvas>
               </div>
@@ -1394,6 +1418,15 @@
                 <div style="padding:16px;color:#aaa;font-size:0.82rem;">กำลังโหลด...</div>
               </div>
             </div>
+          </div>
+
+          <!-- Row 3.5: Stale donations report -->
+          <div class="card" id="staleReportCard" style="margin-bottom:1.2rem;display:none;">
+            <div class="card-header">
+              <span class="card-title">&#9201; อุปกรณ์ค้างไม่อัปเดต &gt; 7 วัน</span>
+              <span id="staleCountBadge" style="font-size:0.75rem;font-weight:700;padding:0.2rem 0.7rem;border-radius:20px;background:#fef3c7;color:#92400e;"></span>
+            </div>
+            <div id="staleReportBody" style="padding:0 0 0.5rem;"></div>
           </div>
 
           <!-- Row 4: School aid chart -->
