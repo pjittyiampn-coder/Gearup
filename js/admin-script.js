@@ -4262,12 +4262,11 @@ async function loadSchools() {
                 .select('id, school_id, address')
                 .in('school_id', schoolIds);
 
-            // Build province map: extract last comma-separated part of address as province
+            // Build province map: extract text after 'จังหวัด' keyword
             (reqLinks || []).forEach(r => {
                 if (!_schoolProvinceMap[r.school_id] && r.address) {
-                    const parts = r.address.split(',');
-                    const last = parts[parts.length - 1]?.trim();
-                    if (last) _schoolProvinceMap[r.school_id] = last;
+                    const match = r.address.match(/จังหวัด\s*([^\d,]+?)(?:\s+\d{5})?[\s,]*$/);
+                    if (match) _schoolProvinceMap[r.school_id] = match[1].trim();
                 }
             });
 
