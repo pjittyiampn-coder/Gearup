@@ -4228,9 +4228,11 @@ async function handleEventPhotoUpload(input) {
 // SCHOOLS SECTION
 // ============================================================
 
-let _schoolsCache   = {};
-let _schoolsAll     = [];
-let _schoolConfMap  = {}; // school_id → count of confirmed requests
+let _schoolsCache         = {};
+let _schoolsAll           = [];
+let _schoolConfMap        = {}; // school_id → count of confirmed requests
+let _schoolProvinceMap    = {}; // school_id → province string (from linked request address)
+let _schoolConfDetailMap  = {}; // school_id → { confirmed_at, item_count }
 
 async function loadSchools() {
     const wrap = document.getElementById('schoolsTableWrap');
@@ -4249,22 +4251,51 @@ async function loadSchools() {
 
     // Load confirmation badges — only count NEW (unviewed) confirmations
     _schoolConfMap = {};
+    _schoolProvinceMap = {};
+    _schoolConfDetailMap = {};
     try {
         const schoolIds = _schoolsAll.map(s => s.id).filter(Boolean);
         if (schoolIds.length > 0) {
             const viewed = JSON.parse(localStorage.getItem('gearup_school_viewed') || '{}');
             const { data: reqLinks } = await supabaseClient
                 .from('requests')
-                .select('id, school_id')
+                .select('id, school_id, address')
                 .in('school_id', schoolIds);
+
+            // Build province map: extract last comma-separated part of address as province
+            (reqLinks || []).forEach(r => {
+                if (!_schoolProvinceMap[r.school_id] && r.address) {
+                    const parts = r.address.split(',');
+                    const last = parts[parts.length - 1]?.trim();
+                    if (last) _schoolProvinceMap[r.school_id] = last;
+                }
+            });
+
             const allReqIds = (reqLinks || []).map(r => r.id);
             if (allReqIds.length > 0) {
                 const { data: confs } = await supabaseClient
                     .from('recipient_confirmations')
-                    .select('request_id, confirmed_at')
+                    .select('request_id, confirmed_at, notes')
                     .in('request_id', allReqIds);
+
+                // Build req → school lookup for conf detail map
+                const reqToSchool = {};
+                (reqLinks || []).forEach(r => { reqToSchool[r.id] = r.school_id; });
+
                 const confByReq = {};
-                (confs || []).forEach(c => { confByReq[c.request_id] = c.confirmed_at; });
+                (confs || []).forEach(c => {
+                    confByReq[c.request_id] = c.confirmed_at;
+                    const schoolId = reqToSchool[c.request_id];
+                    if (schoolId) {
+                        let itemCount = 0;
+                        try {
+                            const parsed = JSON.parse(c.notes || 'null');
+                            if (parsed?.perItem) itemCount = parsed.perItem.length;
+                        } catch (e) {}
+                        _schoolConfDetailMap[schoolId] = { confirmed_at: c.confirmed_at, item_count: itemCount };
+                    }
+                });
+
                 (reqLinks || []).forEach(r => {
                     const confAt = confByReq[r.id];
                     if (!confAt) return;
@@ -4304,13 +4335,17 @@ function renderSchoolsTable(rows) {
         <th>ชื่อโรงเรียน/องค์กร</th>
         <th>อีเมล (login)</th>
         <th>จังหวัด</th>
-        <th>Banner</th>
-        <th>วันที่เพิ่ม</th>
+        <th>วันที่รับของ</th>
+        <th>จำนวนอุปกรณ์</th>
         <th>การดำเนินการ</th>
       </tr></thead>
       <tbody>${rows.map(s => {
-        const hasBanner = !!s.banner_url;
-        const dateStr   = s.created_at ? new Date(s.created_at).toLocaleDateString('th-TH') : '—';
+        const province  = _schoolProvinceMap[s.id] || s.province || '—';
+        const confDetail = _schoolConfDetailMap[s.id];
+        const confDateStr = confDetail?.confirmed_at
+            ? new Date(confDetail.confirmed_at).toLocaleDateString('th-TH')
+            : '—';
+        const itemCount = confDetail?.item_count ?? '—';
         const confCount = _schoolConfMap[s.id] || 0;
         const confBadge = confCount > 0
             ? ` <span class="conf-badge" style="background:#22c55e;color:#fff;border-radius:10px;padding:0.1rem 0.45rem;font-size:0.68rem;font-weight:700;vertical-align:middle;">✓ ${confCount}</span>`
@@ -4318,13 +4353,9 @@ function renderSchoolsTable(rows) {
         return `<tr>
           <td style="font-weight:600;">${escapeHtml(s.name || '—')}</td>
           <td style="font-family:monospace;font-size:0.85rem;">${escapeHtml(s.email || '—')}</td>
-          <td>${escapeHtml(s.province || '—')}</td>
-          <td style="text-align:center;">
-            ${hasBanner
-                ? `<img src="${escapeHtml(s.banner_url)}" style="width:60px;height:36px;object-fit:cover;border-radius:5px;border:1px solid #ddd;" loading="lazy">`
-                : '<span style="color:#aaa;font-size:0.8rem;">ไม่มี</span>'}
-          </td>
-          <td style="color:#888;font-size:0.85rem;">${dateStr}</td>
+          <td>${escapeHtml(province)}</td>
+          <td style="color:#555;font-size:0.85rem;">${confDateStr}</td>
+          <td style="text-align:center;">${itemCount !== '—' ? `<span style="font-weight:600;color:#2f5233;">${itemCount}</span> ชิ้น` : '<span style="color:#aaa;">—</span>'}</td>
           <td>
             <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
               <button class="btn btn-sm" style="background:#e8f4fd;color:#1565c0;border:1px solid #90caf9"

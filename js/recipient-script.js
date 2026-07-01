@@ -227,24 +227,35 @@ async function showProjectList(projects, email, school) {
     // Render immediately with 0 received (placeholder)
     renderBreakdown({});
 
-    // Then fetch actual received counts from donation_items
+    // Fetch received + in-transit counts for per-project stats
+    let statsMap = {}; // request_id → { received, in_transit }
     try {
         const projectIds = projects.map(p => p.id).filter(Boolean);
         if (projectIds.length > 0 && rcpClient) {
+            const RCVD = ['delivered', 'completed'];
+            const TRNS = ['in_transit', 'preparing', 'picked_up', 'processing', 'ready'];
             const { data: dons } = await rcpClient
                 .from('donations')
-                .select('donation_items(device_type)')
+                .select('direct_donation_to_request_id, current_status, donation_items(device_type)')
                 .in('direct_donation_to_request_id', projectIds)
-                .in('current_status', ['delivered', 'completed']);
+                .in('current_status', [...RCVD, ...TRNS]);
 
             const equipRcv = {};
             (dons || []).forEach(don => {
-                (don.donation_items || []).forEach(item => {
-                    const raw  = item.device_type || 'Other';
-                    const en   = DEVICE_TH_TO_EN[raw] || raw;
-                    const th   = DEVICE_TH_MAP[en] || raw;
-                    equipRcv[th] = (equipRcv[th] || 0) + 1;
-                });
+                const rid   = don.direct_donation_to_request_id;
+                const items = don.donation_items || [];
+                if (!statsMap[rid]) statsMap[rid] = { received: 0, in_transit: 0 };
+                if (RCVD.includes(don.current_status)) {
+                    statsMap[rid].received += items.length;
+                    items.forEach(item => {
+                        const raw = item.device_type || 'Other';
+                        const en  = DEVICE_TH_TO_EN[raw] || raw;
+                        const th  = DEVICE_TH_MAP[en] || raw;
+                        equipRcv[th] = (equipRcv[th] || 0) + 1;
+                    });
+                } else {
+                    statsMap[rid].in_transit += items.length;
+                }
             });
             renderBreakdown(equipRcv);
         }
@@ -283,6 +294,12 @@ async function showProjectList(projects, email, school) {
         const statusClass = 'proj-pill-' + status;
         const equip       = p.equipment_type ? p.equipment_type.split(',')[0].trim() : '—';
         const qty         = p.quantity ? `${p.quantity} ชิ้น` : '—';
+        const qtyNum      = parseInt(p.quantity) || 0;
+        const s           = statsMap[p.id] || { received: 0, in_transit: 0 };
+        const missing     = Math.max(0, qtyNum - s.received - s.in_transit);
+        const startDate   = p.created_at
+            ? new Date(p.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'numeric', day: 'numeric' })
+            : '—';
         return `
         <div class="proj-card" onclick="selectProjectById('${p.id}', '${email}')">
             <div class="proj-card-stripe" style="background:${stripe}"></div>
@@ -291,6 +308,16 @@ async function showProjectList(projects, email, school) {
                 <div class="proj-card-info">
                     <div class="proj-card-name">${escHtml(p.project_name || p.org_name || '—')}</div>
                     <div class="proj-card-id">${escHtml(p.tracking_id)}</div>
+                    <div class="proj-card-mini-stats">
+                        <span>ขอ <b>${qtyNum}</b></span>
+                        <span class="pms-dot">·</span>
+                        <span>รับแล้ว <b style="color:${s.received > 0 ? '#2f5233' : 'inherit'}">${s.received}</b></span>
+                        <span class="pms-dot">·</span>
+                        <span>จัดส่ง <b style="color:${s.in_transit > 0 ? '#7c3aed' : 'inherit'}">${s.in_transit}</b></span>
+                        <span class="pms-dot">·</span>
+                        <span>ขาด <b style="color:${missing > 0 ? '#e67e22' : '#2f5233'}">${missing}</b></span>
+                    </div>
+                    <div class="proj-card-date">📅 เริ่ม: ${startDate}</div>
                     <div class="proj-card-pills">
                         <span class="proj-pill proj-pill-equip">${escHtml(equip)}</span>
                         <span class="proj-pill proj-pill-qty">${qty}</span>
