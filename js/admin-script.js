@@ -78,9 +78,98 @@ const CARRIER_LABELS = {
     other: 'อื่นๆ',
 };
 
+// === GLOBAL SEARCH ===
+function initGlobalSearch() {
+    const input = document.getElementById('globalSearch');
+    const results = document.getElementById('gsResults');
+    if (!input || !results) return;
+
+    let _gsTimer = null;
+
+    input.addEventListener('input', () => {
+        clearTimeout(_gsTimer);
+        const q = input.value.trim();
+        if (!q) { results.classList.remove('open'); return; }
+        results.innerHTML = '<div class="gs-loading">กำลังค้นหา...</div>';
+        results.classList.add('open');
+        _gsTimer = setTimeout(() => doGlobalSearch(q, results), 300);
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { results.classList.remove('open'); input.blur(); }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!document.getElementById('globalSearchWrap')?.contains(e.target)) {
+            results.classList.remove('open');
+        }
+    });
+}
+
+async function doGlobalSearch(q, resultsEl) {
+    try {
+        const [donRes, reqRes] = await Promise.all([
+            supabaseClient.from('donations')
+                .select('id, tracking_id, donor_name, donor_email')
+                .or(`tracking_id.ilike.%${q}%,donor_name.ilike.%${q}%,donor_email.ilike.%${q}%`)
+                .limit(5),
+            supabaseClient.from('requests')
+                .select('id, tracking_id, contact_name, org_name, email')
+                .or(`tracking_id.ilike.%${q}%,contact_name.ilike.%${q}%,org_name.ilike.%${q}%`)
+                .limit(5)
+        ]);
+
+        const donations = donRes.data || [];
+        const requests = reqRes.data || [];
+
+        if (!donations.length && !requests.length) {
+            resultsEl.innerHTML = '<div class="gs-empty">ไม่พบผลลัพธ์</div>';
+            return;
+        }
+
+        let html = '';
+        donations.forEach(d => {
+            const name = d.donor_name || d.donor_email || '—';
+            html += `<div class="gs-result-item" onclick="gsGoTo('donations','${d.id}','donationSearch','${d.tracking_id}')">
+                <span class="gs-result-badge gs-badge-don">บริจาค</span>
+                <span class="gs-result-text">${name}</span>
+                <span class="gs-result-id">${d.tracking_id || ''}</span>
+            </div>`;
+        });
+        requests.forEach(r => {
+            const name = r.org_name || r.contact_name || '—';
+            html += `<div class="gs-result-item" onclick="gsGoTo('requests','${r.id}','requestSearch','${r.tracking_id}')">
+                <span class="gs-result-badge gs-badge-req">คำขอ</span>
+                <span class="gs-result-text">${name}</span>
+                <span class="gs-result-id">${r.tracking_id || ''}</span>
+            </div>`;
+        });
+        resultsEl.innerHTML = html;
+    } catch (e) {
+        resultsEl.innerHTML = '<div class="gs-empty">เกิดข้อผิดพลาด</div>';
+    }
+}
+
+function gsGoTo(section, id, searchFieldId, trackingId) {
+    const resultsEl = document.getElementById('gsResults');
+    const globalInput = document.getElementById('globalSearch');
+    if (resultsEl) resultsEl.classList.remove('open');
+    if (globalInput) globalInput.value = '';
+
+    showSection(section);
+    setTimeout(() => {
+        const sf = document.getElementById(searchFieldId);
+        if (sf) {
+            sf.value = trackingId || '';
+            sf.dispatchEvent(new Event('input'));
+        }
+    }, 200);
+}
+
 // === PAGE INIT ===
 document.addEventListener('DOMContentLoaded', () => {
     initHeaderDate();
+    initGlobalSearch();
     attachSearchDebounce('donationSearch', () => loadDonations(1));
     attachSearchDebounce('requestSearch', () => loadRequests(1));
     attachSearchDebounce('recycleSearch', () => loadRecycle(1));
