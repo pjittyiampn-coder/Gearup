@@ -6328,6 +6328,26 @@ async function setProfileCarrier(donationId, carrier, btn) {
     }
 }
 
+function downloadDonationCertificateDemo() {
+    const demoId = '__DEMO__';
+    _profileDonationCache[demoId] = {
+        tracking_id: 'GU-DON-02072026-001',
+        donor_name: 'สมชาย รักษ์โลก',
+        created_at: new Date().toISOString(),
+        total_weight: 11.6,
+        carbon_saved: 348,
+        _items: [
+            { device_type: 'Computer', device_brand: 'HP', device_model: 'ProDesk 600 G6', device_weight: 5.8, device_condition: 'working' },
+            { device_type: 'Computer', device_brand: 'HP', device_model: 'ProDesk 600 G6', device_weight: 5.8, device_condition: 'working' },
+        ],
+        _recipientPost: {
+            org_name: 'โรงเรียนสะลวงนอก',
+            address: 'ต.สะลวง อ.แม่ริม จ.เชียงใหม่ 50180',
+        }
+    };
+    downloadDonationCertificate(demoId);
+}
+
 // === DONATION CERTIFICATE ===
 function downloadDonationCertificate(donationId) {
     const d = _profileDonationCache[donationId];
@@ -6367,24 +6387,7 @@ function downloadDonationCertificate(donationId) {
         </tr>`;
     }).join('');
 
-    const recipientHtml = d._recipientPost ? `
-        <div style="margin:22px 40px 0;padding:14px 20px;background:#f0f7f0;border-radius:10px;border-left:4px solid #2f5233;">
-            <div style="font-size:0.78rem;color:#8b7355;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">ปลายทาง • Recipient</div>
-            <div style="font-size:1rem;color:#1a2421;font-weight:600;">${d._recipientPost.org_name || d._recipientPost.project_name || d._recipientPost.contact_name}</div>
-            ${d._recipientPost.address ? `<div style="font-size:0.85rem;color:#555;margin-top:2px;">📍 ${d._recipientPost.address}</div>` : ''}
-        </div>` : '';
-
-    const cornerSvg = (rotate) => `<svg width="60" height="60" viewBox="0 0 60 60" style="transform:rotate(${rotate}deg)" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 4 L4 22 M4 4 L22 4" stroke="#d4a574" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M10 10 L10 18 M10 10 L18 10" stroke="#d4a574" stroke-width="1.5" stroke-linecap="round"/>
-        <circle cx="4" cy="4" r="2.5" fill="#d4a574"/>
-        <circle cx="10" cy="10" r="1.5" fill="#d4a574" opacity="0.6"/>
-    </svg>`;
-
     const sealSvg = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <filter id="blur1"><feGaussianBlur stdDeviation="0.5"/></filter>
-        </defs>
         ${Array.from({length:16},(_,i)=>{const a=i*(360/16)*Math.PI/180;const x1=50+38*Math.cos(a);const y1=50+38*Math.sin(a);const x2=50+44*Math.cos(a);const y2=50+44*Math.sin(a);return`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#d4a574" stroke-width="1.5"/>`;}).join('')}
         <circle cx="50" cy="50" r="36" fill="#2f5233" opacity="0.08" stroke="#2f5233" stroke-width="1"/>
         <circle cx="50" cy="50" r="30" fill="#2f5233" opacity="0.12" stroke="#d4a574" stroke-width="1.5"/>
@@ -6394,11 +6397,58 @@ function downloadDonationCertificate(donationId) {
         <text x="50" y="61" text-anchor="middle" font-family="serif" font-size="5" fill="#8b7355" letter-spacing="0.5">CERTIFIED</text>
     </svg>`;
 
-    // Build absolute logo URL that works for both file:// (local) and https:// (Vercel)
     const logoUrl = (() => {
         try { return new URL('assets/logo-gearup.png', window.location.href).href; }
         catch(e) { return ''; }
     })();
+
+    // Decorative leaf branch SVG (used on both sides of header)
+    const leafBranch = `<svg width="80" height="70" viewBox="0 0 80 70" xmlns="http://www.w3.org/2000/svg" style="opacity:0.45;">
+      <path d="M40 68 C36 52 26 36 20 20 C22 12 18 4 18 4" stroke="#2f5233" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <ellipse cx="13" cy="18" rx="13" ry="6" fill="#2f5233" opacity="0.8" transform="rotate(-38 13 18)"/>
+      <ellipse cx="22" cy="36" rx="11" ry="5.5" fill="#2f5233" opacity="0.72" transform="rotate(-50 22 36)"/>
+      <ellipse cx="30" cy="54" rx="10" ry="5" fill="#2f5233" opacity="0.65" transform="rotate(-60 30 54)"/>
+      <ellipse cx="30" cy="14" rx="10" ry="4.5" fill="#3d7a43" opacity="0.65" transform="rotate(22 30 14)"/>
+      <ellipse cx="36" cy="32" rx="9" ry="4" fill="#3d7a43" opacity="0.58" transform="rotate(12 36 32)"/>
+    </svg>`;
+
+    // Mirrored branch for the right side
+    const leafBranchR = `<svg width="80" height="70" viewBox="0 0 80 70" xmlns="http://www.w3.org/2000/svg" style="opacity:0.45;transform:scaleX(-1);">
+      <path d="M40 68 C36 52 26 36 20 20 C22 12 18 4 18 4" stroke="#2f5233" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <ellipse cx="13" cy="18" rx="13" ry="6" fill="#2f5233" opacity="0.8" transform="rotate(-38 13 18)"/>
+      <ellipse cx="22" cy="36" rx="11" ry="5.5" fill="#2f5233" opacity="0.72" transform="rotate(-50 22 36)"/>
+      <ellipse cx="30" cy="54" rx="10" ry="5" fill="#2f5233" opacity="0.65" transform="rotate(-60 30 54)"/>
+      <ellipse cx="30" cy="14" rx="10" ry="4.5" fill="#3d7a43" opacity="0.65" transform="rotate(22 30 14)"/>
+      <ellipse cx="36" cy="32" rx="9" ry="4" fill="#3d7a43" opacity="0.58" transform="rotate(12 36 32)"/>
+    </svg>`;
+
+    // Large background tree art
+    const bgTreeSvg = `<svg width="230" height="270" viewBox="0 0 230 270" xmlns="http://www.w3.org/2000/svg" style="position:absolute;right:35px;bottom:55px;opacity:0.038;pointer-events:none;z-index:1;">
+      <rect x="103" y="210" width="24" height="55" rx="4" fill="#2f5233"/>
+      <ellipse cx="115" cy="190" rx="58" ry="46" fill="#2f5233"/>
+      <ellipse cx="115" cy="155" rx="52" ry="44" fill="#2f5233"/>
+      <ellipse cx="115" cy="122" rx="44" ry="38" fill="#2f5233"/>
+      <ellipse cx="115" cy="92" rx="36" ry="32" fill="#2f5233"/>
+      <ellipse cx="115" cy="65" rx="28" ry="26" fill="#2f5233"/>
+      <ellipse cx="115" cy="42" rx="20" ry="20" fill="#2f5233"/>
+    </svg>`;
+
+    // SVG icons for impact cards
+    const iconCarbon = `<svg width="22" height="22" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20C19 20 22 3 22 3c-1 2-8 4-8 4z"/>
+    </svg>`;
+    const iconTree = `<svg width="22" height="22" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17 12h-4V7l-5 8h4v5l5-8z" fill="none"/>
+      <rect x="10.5" y="17" width="3" height="5" rx="0.5" fill="white"/>
+      <polygon points="12,2 3,14 21,14" fill="white"/>
+      <polygon points="12,7 5,17 19,17" fill="rgba(255,255,255,0.6)"/>
+    </svg>`;
+    const iconCar = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 17H3v-5l3-6h12l3 6v5h-2"/>
+      <circle cx="7.5" cy="17" r="2"/>
+      <circle cx="16.5" cy="17" r="2"/>
+      <path d="M5 12h14"/>
+    </svg>`;
 
     const html = `<!DOCTYPE html>
 <html lang="th">
@@ -6410,7 +6460,7 @@ function downloadDonationCertificate(donationId) {
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{
-  background:#b8b4ae;
+  background:#b0aca6;
   display:flex;flex-direction:column;align-items:center;
   justify-content:flex-start;min-height:100vh;
   padding:24px 16px;gap:16px;
@@ -6422,81 +6472,74 @@ html,body{
   .print-btn{display:none!important;}
 }
 
-/* ══════════════════════════
-   CERTIFICATE CARD
-   A4 landscape ≈ 1122×794px
-   We use 1090×750 on screen
-══════════════════════════ */
 .cert-wrap{
   width:1090px;height:750px;
-  background:#ffffff;position:relative;overflow:hidden;
-  box-shadow:0 20px 80px rgba(0,0,0,0.4);
+  background:
+    radial-gradient(ellipse at 8% 92%, rgba(47,82,51,0.07) 0%, transparent 38%),
+    radial-gradient(ellipse at 92% 8%, rgba(212,165,116,0.06) 0%, transparent 38%),
+    radial-gradient(ellipse at 50% 50%, rgba(47,82,51,0.02) 0%, transparent 70%),
+    #ffffff;
+  position:relative;overflow:hidden;
+  box-shadow:0 24px 80px rgba(0,0,0,0.42);
   display:flex;flex-direction:column;
 }
 
-/* ── Corner triangles ── */
+/* Corner triangles */
 .crn{position:absolute;width:116px;height:116px;z-index:20;}
 .crn-tl{top:0;left:0;background:#2f5233;clip-path:polygon(0 0,100% 0,0 100%);}
 .crn-tr{top:0;right:0;background:#2f5233;clip-path:polygon(0 0,100% 0,100% 100%);}
 .crn-bl{bottom:0;left:0;background:#2f5233;clip-path:polygon(0 0,0 100%,100% 100%);}
 .crn-br{bottom:0;right:0;background:#2f5233;clip-path:polygon(100% 0,100% 100%,0 100%);}
 
-/* ── Inner frame border ── */
+/* Inner frame border */
 .cert-frame{
   position:absolute;inset:18px;
-  border:1px solid rgba(47,82,51,0.25);
+  border:1px solid rgba(47,82,51,0.22);
   pointer-events:none;z-index:5;
 }
 
-/* ── Watermark ── */
+/* Watermark */
 .cert-wm{
   position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%) rotate(-18deg);
   font-family:'Playfair Display',serif;font-size:9rem;font-weight:700;
-  color:#2f5233;opacity:0.018;letter-spacing:14px;
+  color:#2f5233;opacity:0.016;letter-spacing:14px;
   pointer-events:none;white-space:nowrap;z-index:1;
   user-select:none;
 }
 
-/* ══════════════════════════
-   LAYOUT: 3 rows
-   [header-zone] flex-shrink:0
-   [body-zone]   flex:1
-   [footer-zone] flex-shrink:0
-══════════════════════════ */
-
-/* ── HEADER ZONE ── */
+/* HEADER ZONE */
 .cert-header{
   flex-shrink:0;
-  padding:28px 80px 0;
+  padding:22px 80px 0;
   display:flex;flex-direction:column;align-items:center;
   position:relative;z-index:2;
+}
+.cert-header-top{
+  display:flex;align-items:center;justify-content:center;gap:20px;
+  margin-bottom:8px;
 }
 .cert-logo-circle{
   width:72px;height:72px;border-radius:50%;
   background:#ffffff;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 20px rgba(0,0,0,0.15);
+  box-shadow:0 4px 20px rgba(0,0,0,0.14);
   flex-shrink:0;
 }
-.cert-logo-circle img{
-  width:100%;height:100%;object-fit:cover;
-  display:block;
-}
+.cert-logo-circle img{width:100%;height:100%;object-fit:cover;display:block;}
 .cert-brand-name{
   font-family:'Playfair Display',serif;
   font-size:1.4rem;font-weight:700;color:#1a2421;
-  letter-spacing:6px;margin-top:8px;
+  letter-spacing:6px;margin-top:6px;text-align:center;
 }
 .cert-brand-sub{
   font-family:'Cormorant Garamond',serif;
   font-size:0.6rem;letter-spacing:2.5px;text-transform:uppercase;
-  color:#c0b8b0;margin-top:2px;
+  color:#c0b8b0;margin-top:2px;text-align:center;
 }
-/* ornament rule */
 .orn{
   display:flex;align-items:center;gap:10px;
-  width:280px;margin:12px auto 10px;
+  width:280px;margin:10px auto 8px;
 }
 .orn-l{flex:1;height:1px;background:linear-gradient(90deg,transparent,#d4a574);}
 .orn-r{flex:1;height:1px;background:linear-gradient(90deg,#d4a574,transparent);}
@@ -6510,7 +6553,7 @@ html,body{
   color:#c0b8b0;letter-spacing:3px;text-transform:uppercase;
 }
 
-/* ── BODY ZONE ── */
+/* BODY ZONE */
 .cert-body{
   flex:1;min-height:0;
   padding:0 80px;
@@ -6527,7 +6570,6 @@ html,body{
   font-family:'Sarabun',sans-serif;font-size:2.5rem;font-weight:700;
   color:#1a2421;line-height:1.2;
 }
-/* name gold rule */
 .name-rule{
   display:flex;align-items:center;gap:8px;
   width:240px;margin:0 auto;
@@ -6535,7 +6577,6 @@ html,body{
 .name-rule-l{flex:1;height:1.5px;background:linear-gradient(90deg,transparent,#d4a574);}
 .name-rule-r{flex:1;height:1.5px;background:linear-gradient(90deg,#d4a574,transparent);}
 .name-rule-dot{width:5px;height:5px;background:#d4a574;border-radius:50%;flex-shrink:0;}
-/* pills */
 .cert-pills{
   display:inline-flex;align-items:stretch;
   border:1px solid rgba(47,82,51,0.18);border-radius:6px;overflow:hidden;
@@ -6554,7 +6595,6 @@ html,body{
   font-family:'Cormorant Garamond',serif;font-size:0.88rem;
   color:#2f5233;font-weight:600;letter-spacing:0.5px;
 }
-/* section divider */
 .sec-div{
   width:100%;display:flex;align-items:center;gap:12px;
 }
@@ -6563,7 +6603,6 @@ html,body{
   font-family:'Cormorant Garamond',serif;font-size:0.6rem;
   letter-spacing:2.5px;text-transform:uppercase;color:#c0b0a0;white-space:nowrap;
 }
-/* table */
 .cert-table{width:100%;border-collapse:collapse;font-size:0.8rem;}
 .cert-table thead th{
   background:#2f5233;color:#fff;padding:6px 10px;
@@ -6578,25 +6617,34 @@ html,body{
 }
 .cert-table tbody td:first-child{text-align:center;color:#aaa;}
 .cert-table tbody tr:nth-child(even) td{background:rgba(47,82,51,0.025);}
-/* destination */
 .cert-dest{
   display:inline-flex;align-items:center;gap:8px;
   padding:5px 16px;background:#f2f8f3;border-radius:20px;
   border:1px solid rgba(47,82,51,0.2);font-size:0.78rem;
 }
 .cert-dest-lbl{font-size:0.6rem;letter-spacing:1px;text-transform:uppercase;color:#2f5233;font-family:'Cormorant Garamond',serif;}
-/* impact */
-.cert-impact{display:flex;justify-content:center;gap:10px;}
-.cert-impact-card{
-  width:120px;text-align:center;
-  border:1px solid rgba(47,82,51,0.15);border-radius:8px;
-  padding:10px 8px;background:linear-gradient(160deg,#f8fbf8,#eef7ee);
-}
-.impact-icon{font-size:1.1rem;margin-bottom:3px;}
-.impact-val{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:#2f5233;}
-.impact-label{font-size:0.6rem;color:#8b7355;margin-top:2px;font-family:'Cormorant Garamond',serif;line-height:1.4;}
 
-/* ── FOOTER ZONE ── */
+/* Impact cards — redesigned */
+.cert-impact{display:flex;justify-content:center;gap:14px;}
+.cert-impact-card{
+  width:132px;text-align:center;
+  border:1px solid rgba(47,82,51,0.15);border-radius:12px;
+  border-left:4px solid #2f5233;
+  padding:12px 10px 10px;
+  background:linear-gradient(160deg,#f8fbf8,#eef7ee);
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+}
+.impact-icon-wrap{
+  width:42px;height:42px;
+  background:#2f5233;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  box-shadow:0 3px 10px rgba(47,82,51,0.3);
+}
+.impact-val{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#2f5233;}
+.impact-label{font-size:0.6rem;color:#8b7355;font-family:'Cormorant Garamond',serif;line-height:1.4;}
+
+/* FOOTER ZONE */
 .cert-footer{
   flex-shrink:0;
   padding:14px 80px 22px;
@@ -6614,7 +6662,6 @@ html,body{
 .cert-ref-num{font-family:'Cormorant Garamond',serif;font-size:0.7rem;color:#999;letter-spacing:1px;}
 .cert-ref-date{font-size:0.62rem;color:#ccc;margin-top:2px;}
 
-/* print button */
 .print-btn{
   padding:11px 44px;background:#2f5233;color:#fff;
   border:none;border-radius:25px;cursor:pointer;
@@ -6635,13 +6682,22 @@ html,body{
   <div class="cert-frame"></div>
   <div class="cert-wm">GEARUP</div>
 
-  <!-- ── HEADER ZONE ── -->
+  <!-- Background tree art -->
+  ${bgTreeSvg}
+
+  <!-- HEADER ZONE -->
   <div class="cert-header">
-    <div class="cert-logo-circle">
-      <img src="${logoUrl}" alt="GEARUP Logo">
+    <div class="cert-header-top">
+      ${leafBranch}
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div class="cert-logo-circle">
+          <img src="${logoUrl}" alt="GEARUP Logo">
+        </div>
+        <div class="cert-brand-name">GEARUP</div>
+        <div class="cert-brand-sub">Connecting Donors · Reducing E-Waste · Thailand</div>
+      </div>
+      ${leafBranchR}
     </div>
-    <div class="cert-brand-name">GEARUP</div>
-    <div class="cert-brand-sub">Connecting Donors · Reducing E-Waste · Thailand</div>
     <div class="orn">
       <div class="orn-l"></div><div class="orn-d"></div><div class="orn-r"></div>
     </div>
@@ -6649,9 +6705,8 @@ html,body{
     <div class="cert-title-en">Certificate of Electronic Equipment Donation</div>
   </div>
 
-  <!-- ── BODY ZONE (flex:1, space-evenly) ── -->
+  <!-- BODY ZONE -->
   <div class="cert-body">
-    <!-- recipient -->
     <div>
       <div class="cert-preamble">ขอมอบใบรับรองฉบับนี้แก่</div>
       <div class="cert-name">${donorName}</div>
@@ -6662,7 +6717,6 @@ html,body{
       </div>
     </div>
 
-    <!-- meta pills -->
     <div class="cert-pills">
       <div class="pill">
         <span class="pill-k">วันที่บริจาค · Date</span>
@@ -6682,7 +6736,6 @@ html,body{
       </div>` : ''}
     </div>
 
-    <!-- equipment table -->
     <div style="width:100%;">
       <div class="sec-div" style="margin-bottom:8px;">
         <div class="sdl"></div>
@@ -6711,27 +6764,26 @@ html,body{
       </div>` : ''}
     </div>
 
-    <!-- environmental impact -->
     ${carbonSaved > 0 ? `
     <div style="width:100%;">
-      <div class="sec-div" style="margin-bottom:8px;">
+      <div class="sec-div" style="margin-bottom:10px;">
         <div class="sdl"></div>
         <div class="sdlabel">ผลกระทบเชิงบวก · Environmental Impact</div>
         <div class="sdl"></div>
       </div>
       <div class="cert-impact">
         <div class="cert-impact-card">
-          <div class="impact-icon">🌱</div>
+          <div class="impact-icon-wrap">${iconCarbon}</div>
           <div class="impact-val">${Math.round(carbonSaved).toLocaleString()}</div>
           <div class="impact-label">kgCO₂e ที่ลดได้<br>Carbon Saved</div>
         </div>
         <div class="cert-impact-card">
-          <div class="impact-icon">🌳</div>
+          <div class="impact-icon-wrap">${iconTree}</div>
           <div class="impact-val">${treesEq.toLocaleString()}</div>
           <div class="impact-label">ต้นไม้เทียบเท่า<br>Equivalent Trees</div>
         </div>
         <div class="cert-impact-card">
-          <div class="impact-icon">🚗</div>
+          <div class="impact-icon-wrap">${iconCar}</div>
           <div class="impact-val">${kmEq.toLocaleString()}</div>
           <div class="impact-label">กม. ไม่ปล่อย CO₂<br>Car km Offset</div>
         </div>
@@ -6739,7 +6791,7 @@ html,body{
     </div>` : ''}
   </div>
 
-  <!-- ── FOOTER ZONE ── -->
+  <!-- FOOTER ZONE -->
   <div class="cert-footer">
     <div class="cert-sig">
       <div style="height:30px;"></div>
