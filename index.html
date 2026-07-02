@@ -1492,63 +1492,132 @@
         <div class="hero-small">
             <div class="hero-overlay"></div>
             <div class="hero-content">
-                <h1>เปลี่ยนขยะ IT ขององค์กร<br>ให้เป็นคุณค่า ESG และโอกาสทางการศึกษา</h1>
-                <p>เราให้บริการจัดการอุปกรณ์ IT เก่าสำหรับธุรกิจอย่างครบวงจร พร้อมความปลอดภัยของข้อมูลระดับสูงสุด
-                    และรายงานผลกระทบสิ่งแวดล้อมที่ตรวจสอบได้</p>
-                <button class="btn-primary">ปรึกษาผู้เชี่ยวชาญ</button>
+                <h1>บริการของ GEARUP</h1>
+                <p>แพลตฟอร์มครบวงจรสำหรับการบริจาคอุปกรณ์ IT พร้อมเอกสารรับรองและรายงานผลกระทบที่ตรวจสอบได้</p>
             </div>
         </div>
 
         <div class="container">
-            <div class="service-box">
-                <div class="service-text">
-                    <h2>บริการรายงาน ESG</h2>
-                    <p>บริการของเราให้สรุปการประหยัดคาร์บอนและรายงานประสิทธิภาพสูง
-                        เกี่ยวกับการจัดการขยะอิเล็กทรอนิกส์อย่างถูกต้อง สำหรับใช้ในรายงานประจำปีขององค์กร</p>
-                    <button class="btn-download" onclick="generateESGReport()">📊 ดาวน์โหลดรายงาน ESG</button>
+            <div class="sv-intro">
+                <span class="sv-intro-tag">สิ่งที่เราทำ</span>
+                <h2>ครบทุกขั้นตอน ตั้งแต่บริจาคจนถึงมือโรงเรียน</h2>
+                <p>GEARUP ดูแลทุกกระบวนการ — ตั้งแต่รับอุปกรณ์ ตรวจสอบ จับคู่ ไปจนถึงออกใบรับรองและรายงานผล</p>
+            </div>
+
+            <div class="sv-grid">
+                <div class="sv-card">
+                    <div class="sv-card-icon" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);">🔄</div>
+                    <h3 class="sv-card-title">จับคู่อุปกรณ์กับโรงเรียน</h3>
+                    <p class="sv-card-desc">ระบบจับคู่ระหว่างผู้บริจาคกับโรงเรียนและองค์กรที่ต้องการอุปกรณ์ IT ทั่วประเทศ พร้อมติดตามสถานะแบบ real-time ผ่าน Tracking ID</p>
+                    <button class="sv-card-btn" onclick="navigateToPage('request')">ดูโรงเรียนที่รอรับ →</button>
                 </div>
-                <div class="service-image">
-                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop"
-                        alt="กราฟ ESG">
+
+                <div class="sv-card">
+                    <div class="sv-card-icon" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);">📊</div>
+                    <h3 class="sv-card-title">รายงาน ESG & Carbon</h3>
+                    <p class="sv-card-desc">สรุปคาร์บอนที่ประหยัดได้และผลกระทบต่อสิ่งแวดล้อม รายงาน PDF สำหรับองค์กรที่ต้องการรายงาน ESG อย่างเป็นทางการและตรวจสอบได้</p>
+                    <button class="sv-card-btn" onclick="generateESGReport()">ดูตัวอย่างรายงาน →</button>
+                </div>
+
+                <div class="sv-card">
+                    <div class="sv-card-icon" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);">🛡️</div>
+                    <h3 class="sv-card-title">ใบรับรองการลบข้อมูล</h3>
+                    <p class="sv-card-desc">ใบรับรองมาตรฐาน NIST 800-88 ยืนยันการลบข้อมูลอย่างปลอดภัยก่อนส่งมอบ ปกป้องข้อมูลส่วนตัวและข้อมูลองค์กรอย่างได้มาตรฐาน</p>
+                    <button class="sv-card-btn" onclick="generateDataWipingCertificate({})">ดูตัวอย่างใบรับรอง →</button>
+                </div>
+
+                <div class="sv-card">
+                    <div class="sv-card-icon" style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);">🎖️</div>
+                    <h3 class="sv-card-title">Carbon Credit Certificate</h3>
+                    <p class="sv-card-desc">รับใบรับรองคาร์บอนเครดิตพร้อมรหัส GU-CARBON เมื่อการบริจาคเสร็จสมบูรณ์ ใช้แสดงความรับผิดชอบต่อสิ่งแวดล้อมในรายงาน CSR ได้ทันที</p>
+                    <button class="sv-card-btn" onclick="navigateToPage('donate')">เริ่มบริจาคเพื่อรับ →</button>
+                </div>
+
+                <div class="sv-card">
+                    <div class="sv-card-icon" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);">📦</div>
+                    <h3 class="sv-card-title">ติดตามพัสดุ</h3>
+                    <p class="sv-card-desc">กรอก Tracking ID ในระบบ แล้วลิ้งค์ตรงไปยังหน้าติดตามของผู้ให้บริการขนส่ง — ไปรษณีย์ไทย, J&T Express, Flash Express</p>
+                    <button class="sv-card-btn" onclick="navigateToPage('track')">ติดตามพัสดุ →</button>
+                </div>
+
+                <div class="sv-card">
+                    <div class="sv-card-icon" style="background:linear-gradient(135deg,#e8f5e9,#dcedc8);">🏫</div>
+                    <h3 class="sv-card-title">พอร์ทัลโรงเรียน</h3>
+                    <p class="sv-card-desc">ระบบสำหรับโรงเรียนและองค์กรรับบริจาค เข้าสู่ระบบด้วยอีเมล ตรวจสอบสถานะการจัดส่ง และยืนยันการรับอุปกรณ์</p>
+                    <a href="/recipient.html" class="sv-card-btn">เข้าสู่พอร์ทัล →</a>
                 </div>
             </div>
 
-            <div class="service-box dark">
-                <div class="service-content">
-                    <h2>การดูแลและรักษาความปลอดภัยข้อมูลที่เชื่อถือได้</h2>
-                    <h3>การให้ความรู้เรื่องการลบข้อมูล :</h3>
-                    <p>ศูนย์กลางความรู้ด้านมาตรฐานความปลอดภัยข้อมูล (NIST 800-88) สำหรับการรักษาความปลอดภัยก่อนส่งมอบ
-                        และการขอใบอนุญาต Microsoft เพื่อการศึกษา</p>
-                    <div class="security-badge" onclick="generateDataWipingCertificate({})" style="cursor:pointer;">
-                        <div class="badge-icon">🛡️</div>
-                        <h4>ออกใบรับรองการทำลายข้อมูล</h4>
-                        <p style="font-size:0.85rem;">คลิกเพื่อสร้างใบรับรองตัวอย่าง</p>
-                    </div>
+            <!-- Certificate Showcase -->
+            <div class="sv-cert-showcase">
+                <div class="sv-cert-left">
+                    <span class="sv-cert-tag">ตัวอย่างใบรับรอง</span>
+                    <h2>ใบรับรองที่ตรวจสอบได้จริง</h2>
+                    <p>ทุกการบริจาคที่เสร็จสมบูรณ์จะได้รับใบรับรองคาร์บอนเครดิตพร้อมรหัสเฉพาะ สามารถใช้ในรายงาน CSR และ ESG ขององค์กรได้ทันที</p>
+                    <ul class="sv-cert-features">
+                        <li>✓ รหัสใบรับรอง GU-CARBON-YYYY-XXXX เฉพาะตัว</li>
+                        <li>✓ คำนวณคาร์บอนตามน้ำหนักและประเภทอุปกรณ์</li>
+                        <li>✓ ดาวน์โหลด PDF ได้ทันทีเมื่อบริจาคสำเร็จ</li>
+                        <li>✓ มาตรฐาน NIST 800-88 สำหรับการลบข้อมูล</li>
+                    </ul>
+                    <button class="sv-cert-btn" onclick="generateDataWipingCertificate({})">ดูตัวอย่างใบรับรอง</button>
                 </div>
-                <div class="service-image">
-                    <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=500&fit=crop"
-                        alt="เอกสาร NIST">
+                <div class="sv-cert-right">
+                    <div class="sv-cert-preview">
+                        <div class="sv-cert-header">
+                            <div class="sv-cert-logo">GEARUP</div>
+                            <div class="sv-cert-badge-icon">🏆</div>
+                        </div>
+                        <div class="sv-cert-body">
+                            <p class="sv-cert-label">ใบรับรองคาร์บอนเครดิต</p>
+                            <p class="sv-cert-id">GU-CARBON-2568-0042</p>
+                            <div class="sv-cert-stats">
+                                <div class="sv-cert-stat">
+                                    <span class="sv-cert-stat-num">125</span>
+                                    <span class="sv-cert-stat-unit">kgCO₂e</span>
+                                    <span class="sv-cert-stat-label">ลดการปล่อย</span>
+                                </div>
+                                <div class="sv-cert-divider"></div>
+                                <div class="sv-cert-stat">
+                                    <span class="sv-cert-stat-num">1</span>
+                                    <span class="sv-cert-stat-unit">Laptop</span>
+                                    <span class="sv-cert-stat-label">อุปกรณ์บริจาค</span>
+                                </div>
+                            </div>
+                            <div class="sv-cert-footer-strip">ออกให้แก่ โรงเรียนสะลวงนอก จ.เชียงใหม่</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="service-box">
-                <h2>โลจิสติกส์แบบ Bulk อัจฉริยะ โดยไปรษณีย์ไทย</h2>
-
-                <div class="logistics-content">
-                    <div class="logistics-text">
-                        <h3>บริการรับสินค้าถึงที่ :</h3>
-                        <p>เราให้บริการเก็บรวบรวมอุปกรณ์จำนวนมาก โดยสามารถรับอุปกรณ์ได้โดยตรงจากสำนักงานของคุณ
-                            เพื่อความสะดวกสูงสุด</p>
-
-                        <h3>เครือข่ายทั่วประเทศ :</h3>
-                        <p>ครอบคลุมการเก็บรวบรวมอุปกรณ์จากสำนักงานสาขาทั่วประเทศ
-                            ผ่านเครือข่ายโลจิสติกส์ของไปรษณีย์ไทย</p>
+            <!-- Carrier Tracking Section -->
+            <div class="sv-tracking-section">
+                <h3>ขนส่งที่รองรับการติดตาม</h3>
+                <p>จัดส่งด้วยตัวเอง แล้วกรอก Tracking ID ในระบบ — GEARUP จะพาคุณไปหน้าติดตามพัสดุของผู้ให้บริการโดยตรง</p>
+                <div class="sv-carriers">
+                    <div class="sv-carrier" style="border-color:#C8002C40;">
+                        <div class="sv-carrier-dot" style="background:#C8002C;"></div>
+                        <div>
+                            <div class="sv-carrier-name">ไปรษณีย์ไทย / EMS</div>
+                            <div class="sv-carrier-note">track.thailandpost.co.th</div>
+                        </div>
                     </div>
-                    <div class="logistics-image">
-                        <img src="https://images.unsplash.com/photo-1566576721346-d4a3b4eaeb55?w=500&h=400&fit=crop"
-                            alt="โลจิสติกส์">
+                    <div class="sv-carrier" style="border-color:#E3061340;">
+                        <div class="sv-carrier-dot" style="background:#E30613;"></div>
+                        <div>
+                            <div class="sv-carrier-name">J&T Express</div>
+                            <div class="sv-carrier-note">jtexpress.co.th</div>
+                        </div>
+                    </div>
+                    <div class="sv-carrier" style="border-color:#FF6B0040;">
+                        <div class="sv-carrier-dot" style="background:#FF6B00;"></div>
+                        <div>
+                            <div class="sv-carrier-name">Flash Express</div>
+                            <div class="sv-carrier-note">flashexpress.co.th</div>
+                        </div>
                     </div>
                 </div>
+                <button class="sv-tracking-btn" onclick="navigateToPage('track')">ไปหน้าติดตามพัสดุ →</button>
             </div>
         </div>
     </div>
