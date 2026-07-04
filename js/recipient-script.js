@@ -628,10 +628,15 @@ function buildDonationCardWithConfirm(d, startIdx, donIdx, requestId) {
 function cfToggle(btn) {
     const key = btn.dataset.key;
     const row = document.getElementById(key);
+    const alreadySelected = btn.classList.contains('selected');
     row.querySelectorAll('.cf-item-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
     const note = row.querySelector('.cf-item-note');
-    if (note) note.style.display = btn.classList.contains('cf-btn-bad') ? 'block' : 'none';
+    if (!alreadySelected) {
+        btn.classList.add('selected');
+        if (note) note.style.display = btn.classList.contains('cf-btn-bad') ? 'block' : 'none';
+    } else {
+        if (note) note.style.display = 'none';
+    }
 }
 
 function selectAllOk(cfCardId) {
