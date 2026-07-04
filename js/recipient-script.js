@@ -572,10 +572,10 @@ function buildDonationCardWithConfirm(d, startIdx, donIdx, requestId) {
                     ✅ รับแล้ว ใช้งานได้
                 </button>
                 <button type="button" class="cf-item-btn cf-btn-bad" data-key="${key}" data-val="defective" onclick="cfToggle(this)">
-                    ❌ ใช้งานไม่ได้
+                    ❌ ไม่ได้รับ/ใช้งานไม่ได้
                 </button>
             </div>
-            <textarea class="cf-item-note" id="cfnote_${i}" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea>
+            <textarea class="cf-item-note" id="cfnote_${i}" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)" style="display:none;"></textarea>
         </div>`;
     }).join('');
 
@@ -630,6 +630,8 @@ function cfToggle(btn) {
     const row = document.getElementById(key);
     row.querySelectorAll('.cf-item-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
+    const note = row.querySelector('.cf-item-note');
+    if (note) note.style.display = btn.classList.contains('cf-btn-bad') ? 'block' : 'none';
 }
 
 function selectAllOk(cfCardId) {
@@ -639,6 +641,8 @@ function selectAllOk(cfCardId) {
         row.querySelectorAll('.cf-item-btn').forEach(b => b.classList.remove('selected'));
         const okBtn = row.querySelector('.cf-btn-ok');
         if (okBtn) okBtn.classList.add('selected');
+        const note = row.querySelector('.cf-item-note');
+        if (note) note.style.display = 'none';
     });
 }
 
