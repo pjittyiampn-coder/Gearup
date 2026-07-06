@@ -586,8 +586,11 @@ function buildDonationCardWithConfirm(d, startIdx, donIdx, requestId) {
                 <p>โปรดตรวจสอบและยืนยันสถานะของอุปกรณ์แต่ละชิ้น</p>
             </div>
             <div class="don-confirm-body">
-                <div style="display:flex;justify-content:flex-end;margin-bottom:0.6rem;">
-                    <button type="button" onclick="selectAllOk('cfcard_${donIdx}')" style="font-size:0.82rem;padding:0.3rem 0.9rem;border-radius:6px;border:1.5px solid #2f5233;color:#2f5233;background:#fff;cursor:pointer;font-family:inherit;">✅ เลือกทั้งหมด (รับแล้ว ใช้งานได้)</button>
+                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">
+                    <input type="text" id="cfsearch_${donIdx}" placeholder="🔍 ค้นหาอุปกรณ์..." oninput="cfSearch(this,'cfcard_${donIdx}')"
+                        style="flex:1;padding:0.3rem 0.75rem;font-size:0.82rem;border:1.5px solid #ddd;border-radius:6px;font-family:inherit;outline:none;"
+                        onfocus="this.style.borderColor='#2f5233'" onblur="this.style.borderColor='#ddd'">
+                    <button type="button" onclick="selectAllOk('cfcard_${donIdx}')" style="flex-shrink:0;font-size:0.82rem;padding:0.3rem 0.9rem;border-radius:6px;border:1.5px solid #2f5233;color:#2f5233;background:#fff;cursor:pointer;font-family:inherit;white-space:nowrap;">✅ เลือกทั้งหมด (รับแล้ว ใช้งานได้)</button>
                 </div>
                 <div class="cf-items-list">${confirmRows}</div>
                 <div class="cf-divider"></div>
@@ -637,6 +640,16 @@ function cfToggle(btn) {
     } else {
         if (note) note.style.display = 'none';
     }
+}
+
+function cfSearch(input, cfCardId) {
+    const q = input.value.trim().toLowerCase();
+    const card = document.getElementById(cfCardId);
+    if (!card) return;
+    card.querySelectorAll('.cf-item-row').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = !q || text.includes(q) ? '' : 'none';
+    });
 }
 
 function selectAllOk(cfCardId) {
