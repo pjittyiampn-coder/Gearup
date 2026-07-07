@@ -4898,9 +4898,8 @@ function showDonatePostsView(clearRecipient = true) {
     if (clearRecipient) {
         selectedRecipientRequestId = null;
         selectedRecipientPost = null;
-        const schoolDetail = document.getElementById('donateSchoolDetail');
-        if (schoolDetail) schoolDetail.style.display = 'none';
-        updateDonateHero();
+        const banner = document.getElementById('donationTargetBanner');
+        if (banner) banner.style.display = 'none';
     }
 }
 
@@ -5103,20 +5102,17 @@ async function donateToRequest(requestId) {
     selectedRecipientRequestId = requestId;
     selectedRecipientPost = null;
 
-    // Fetch post data with school banner BEFORE navigating
+    // Fetch post data BEFORE navigating so device auto-select works on first render
     if (supabaseClient) {
         try {
-            const { data } = await supabaseClient.from('requests')
-                .select('*, schools(banner_url, name)')
-                .eq('id', requestId).single();
+            const { data } = await supabaseClient.from('requests').select('*').eq('id', requestId).single();
             if (data) selectedRecipientPost = data;
         } catch(e) { console.warn('Could not fetch post data:', e); }
     }
 
     navigateToPage('donate');
     showDonateFormView(true);
-    updateDonateHero();
-    showDonateSchoolDetail();
+    showDonationTargetBanner();
 
     // Auto-select required device type — only if exactly one type requested
     const autoKeys = selectedRecipientPost ? getEquipKeys(selectedRecipientPost.equipment_type) : [];
@@ -5130,59 +5126,6 @@ async function donateToRequest(requestId) {
     }
     // Always re-render so device locks are applied immediately
     renderDonationItems();
-}
-
-function updateDonateHero() {
-    const hero = document.getElementById('donateHero');
-    const titleEl = document.getElementById('donateHeroTitle');
-    if (!hero) return;
-    const p = selectedRecipientPost;
-    if (p) {
-        const isImgUrl = (u) => u && /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(u);
-        const img = (p.schools && p.schools.banner_url)
-            || p.post_image_url
-            || (isImgUrl(p.document_url) ? p.document_url : null)
-            || null;
-        if (img) {
-            hero.style.backgroundImage = `linear-gradient(rgba(26,36,33,0.4), rgba(47,82,51,0.55)), url('${img}')`;
-            hero.style.backgroundSize = 'cover';
-            hero.style.backgroundPosition = 'center';
-        }
-        if (titleEl) titleEl.innerHTML = escapeHtml(p.project_name || 'บริจาคให้โรงเรียนนี้');
-    } else {
-        hero.style.backgroundImage = '';
-        if (titleEl) titleEl.innerHTML = 'มอบอุปกรณ์ของคุณ<br>เพื่อชีวิตใหม่ของผู้อื่น';
-    }
-}
-
-function showDonateSchoolDetail() {
-    const el = document.getElementById('donateSchoolDetail');
-    if (!el) return;
-    const p = selectedRecipientPost;
-    if (!p) { el.style.display = 'none'; return; }
-    const orgLabels = { school: 'โรงเรียน', foundation: 'มูลนิธิ', organization: 'องค์กร' };
-    const org = orgLabels[p.org_type] || p.org_type || 'องค์กร';
-    const equip = getEquipLabels(p.equipment_type) || p.equipment_type || '';
-    el.style.display = '';
-    el.innerHTML = `
-        <div class="donate-school-detail">
-            <div class="dsd-card">
-                <div class="dsd-badge">${escapeHtml(org)}</div>
-                <h2 class="dsd-title">${escapeHtml(p.project_name || '')}</h2>
-                ${p.project_overview ? `<p class="dsd-overview">${escapeHtml(p.project_overview)}</p>` : ''}
-                <div class="dsd-sep"></div>
-                <div class="dsd-meta">
-                    <div class="dsd-meta-item">
-                        <span class="dsd-meta-icon">📦</span>
-                        <span>ต้องการ <strong>${escapeHtml(equip)}</strong> จำนวน <strong>${p.quantity || '?'} เครื่อง</strong></span>
-                    </div>
-                    ${p.contact_name ? `<div class="dsd-meta-item"><span class="dsd-meta-icon">👤</span><span>ผู้ติดต่อ: ${escapeHtml(p.contact_name)}</span></div>` : ''}
-                    ${p.address ? `<div class="dsd-meta-item"><span class="dsd-meta-icon">📍</span><span>${escapeHtml(p.address)}</span></div>` : ''}
-                </div>
-            </div>
-        </div>
-        <div class="dsd-divider"><span>กรอกข้อมูลการบริจาค</span></div>
-    `;
 }
 
 function showDonationTargetBanner() {
