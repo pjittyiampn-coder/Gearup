@@ -586,10 +586,10 @@
 
     <!-- DONATE PAGE -->
     <div class="page" id="donate">
-        <div class="hero-small">
+        <div class="hero-small" id="donateHero">
             <div class="hero-overlay"></div>
             <div class="hero-content">
-                <h1>มอบอุปกรณ์ของคุณ<br>เพื่อชีวิตใหม่ของผู้อื่น</h1>
+                <h1 id="donateHeroTitle">มอบอุปกรณ์ของคุณ<br>เพื่อชีวิตใหม่ของผู้อื่น</h1>
             </div>
         </div>
 
@@ -615,9 +615,9 @@
                     ← กลับเลือกโรงเรียน
                 </button>
             </div>
-            <div class="container">
-                <div id="donationTargetBanner" style="display:none;"></div>
-            </div>
+            <!-- School detail section — shown when donating to a specific school -->
+            <div id="donateSchoolDetail" style="display:none;"></div>
+            <div id="donationTargetBanner" style="display:none;"></div>
             <div class="container donate-container">
                 <h2 class="section-title">บริจาคอุปกรณ์ของคุณ</h2>
 
