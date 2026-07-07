@@ -5166,19 +5166,22 @@ function showDonateSchoolDetail() {
     el.style.display = '';
     el.innerHTML = `
         <div class="donate-school-detail">
-            <div class="dsd-badge">${escapeHtml(org)}</div>
-            <h2 class="dsd-title">${escapeHtml(p.project_name || '')}</h2>
-            ${p.project_overview ? `<p class="dsd-overview">${escapeHtml(p.project_overview)}</p>` : ''}
-            <div class="dsd-meta">
-                <div class="dsd-meta-item">
-                    <span class="dsd-meta-icon">📦</span>
-                    <span>ต้องการ <strong>${escapeHtml(equip)}</strong> จำนวน <strong>${p.quantity || '?'} เครื่อง</strong></span>
+            <div class="dsd-card">
+                <div class="dsd-badge">${escapeHtml(org)}</div>
+                <h2 class="dsd-title">${escapeHtml(p.project_name || '')}</h2>
+                ${p.project_overview ? `<p class="dsd-overview">${escapeHtml(p.project_overview)}</p>` : ''}
+                <div class="dsd-sep"></div>
+                <div class="dsd-meta">
+                    <div class="dsd-meta-item">
+                        <span class="dsd-meta-icon">📦</span>
+                        <span>ต้องการ <strong>${escapeHtml(equip)}</strong> จำนวน <strong>${p.quantity || '?'} เครื่อง</strong></span>
+                    </div>
+                    ${p.contact_name ? `<div class="dsd-meta-item"><span class="dsd-meta-icon">👤</span><span>ผู้ติดต่อ: ${escapeHtml(p.contact_name)}</span></div>` : ''}
+                    ${p.address ? `<div class="dsd-meta-item"><span class="dsd-meta-icon">📍</span><span>${escapeHtml(p.address)}</span></div>` : ''}
                 </div>
-                ${p.contact_name ? `<div class="dsd-meta-item"><span class="dsd-meta-icon">👤</span><span>ผู้ติดต่อ: ${escapeHtml(p.contact_name)}</span></div>` : ''}
-                ${p.address ? `<div class="dsd-meta-item"><span class="dsd-meta-icon">📍</span><span>${escapeHtml(p.address)}</span></div>` : ''}
             </div>
-            <div class="dsd-divider"><span>กรอกข้อมูลการบริจาค</span></div>
         </div>
+        <div class="dsd-divider"><span>กรอกข้อมูลการบริจาค</span></div>
     `;
 }
 
