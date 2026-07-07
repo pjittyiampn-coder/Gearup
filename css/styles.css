@@ -2304,7 +2304,8 @@ section {
 
 .target-banner-img {
     position: relative;
-    width: 220px;
+    width: 320px;
+    min-height: 200px;
     flex-shrink: 0;
 }
 
