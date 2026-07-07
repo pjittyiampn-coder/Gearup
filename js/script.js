@@ -5138,7 +5138,11 @@ function updateDonateHero() {
     if (!hero) return;
     const p = selectedRecipientPost;
     if (p) {
-        const img = (p.schools && p.schools.banner_url) || p.post_image_url || null;
+        const isImgUrl = (u) => u && /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(u);
+        const img = (p.schools && p.schools.banner_url)
+            || p.post_image_url
+            || (isImgUrl(p.document_url) ? p.document_url : null)
+            || null;
         if (img) {
             hero.style.backgroundImage = `linear-gradient(rgba(26,36,33,0.4), rgba(47,82,51,0.55)), url('${img}')`;
             hero.style.backgroundSize = 'cover';
