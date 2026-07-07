@@ -5135,8 +5135,9 @@ function showDonationTargetBanner() {
     const p = selectedRecipientPost;
     const equip = getEquipLabels(p.equipment_type) || p.equipment_type || '';
     const org = orgLabels[p.org_type] || p.org_type || '';
+    const isImgUrl = (u) => u && /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(u);
     const defaultImg = 'https://images.unsplash.com/photo-1588072432836-e10032774350?w=400&h=300&fit=crop';
-    const img = p.post_image_url || defaultImg;
+    const img = p.post_image_url || (isImgUrl(p.document_url) ? p.document_url : null) || defaultImg;
     banner.style.display = 'block';
     banner.innerHTML = `
         <div class="donation-target-banner">
