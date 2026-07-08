@@ -273,6 +273,26 @@
     .btn-pkg { background: var(--primary); color: white; padding: 1.1rem; border-radius: 15px; font-weight: 700; text-decoration: none; font-size: 1.1rem; transition: 0.2s; text-align: center; margin-top: auto; }
     .pkg-card.featured .btn-pkg { background: var(--accent); color: var(--dark); }
     .btn-pkg:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    .btn-pkg-detail { display: block; text-align: center; padding: 0.7rem 1rem; border-radius: 12px; border: 1.5px solid var(--primary); color: var(--primary); font-size: 0.9rem; font-weight: 600; cursor: pointer; background: transparent; margin-bottom: 0.65rem; transition: background 0.2s, color 0.2s; }
+    .btn-pkg-detail:hover { background: rgba(47,82,51,0.07); }
+    .pkg-card.featured .btn-pkg-detail { border-color: var(--accent); color: var(--accent); }
+    .pkg-card.featured .btn-pkg-detail:hover { background: rgba(212,165,116,0.1); }
+    /* ESG Detail Modal */
+    #pkgDetailModal { display:none; position:fixed; inset:0; z-index:9000; background:rgba(26,36,33,0.55); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1.5rem; }
+    #pkgDetailModal.open { display:flex; }
+    .pkg-modal-box { background:#fff; border-radius:20px; max-width:580px; width:100%; max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+    .pkg-modal-header { padding:1.8rem 2rem 1rem; border-bottom:1px solid rgba(47,82,51,0.12); display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+    .pkg-modal-title { font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--dark); margin:0 0 0.2rem; }
+    .pkg-modal-sub { font-size:0.85rem; color:var(--text-muted); margin:0; }
+    .pkg-modal-close { background:none; border:none; font-size:1.4rem; color:#999; cursor:pointer; flex-shrink:0; line-height:1; padding:0; }
+    .pkg-modal-close:hover { color:var(--dark); }
+    .pkg-modal-body { padding:1.5rem 2rem 2rem; }
+    .pkg-modal-section { margin-bottom:1.4rem; }
+    .pkg-modal-section-title { font-size:0.78rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--primary); margin-bottom:0.75rem; }
+    .pkg-modal-list { list-style:none; padding:0; margin:0; }
+    .pkg-modal-list li { display:flex; gap:0.6rem; align-items:flex-start; font-size:0.93rem; color:#444; margin-bottom:0.55rem; }
+    .pkg-modal-list li::before { content:'✓'; color:var(--accent); font-weight:900; flex-shrink:0; margin-top:1px; }
+    .pkg-modal-badge { display:inline-block; background:var(--primary); color:#fff; font-size:0.7rem; padding:0.15rem 0.7rem; border-radius:20px; margin-left:0.4rem; vertical-align:middle; }
 
     /* ===== ADD-ON INFO STRIP ===== */
     .addon-strip-wrap {
@@ -814,11 +834,12 @@
           <div class="pkg-section-label" style="margin-top:1.2rem;">สิ่งที่ได้รับ</div>
           <ul class="pkg-list">
             <li>Tracking รายเครื่อง 100%</li>
-            <li>ESG Report ฉบับพื้นฐาน</li>
+            <li>ESG Report <strong>1 ฉบับ</strong> (รายปี)</li>
             <li>ใบประกาศเกียรติคุณองค์กร</li>
-            <li class="off">รายงานวิเคราะห์สังคมเชิงลึก</li>
-            <li class="off">ที่ปรึกษาด้าน ESG รายปี</li>
+            <li class="off">Carbon Offset Certificate</li>
+            <li class="off">สิทธิ Exclusive Partner</li>
           </ul>
+          <button class="btn-pkg-detail" onclick="openPkgDetail('S')">ดูรายละเอียด ESG Report →</button>
           <a href="#contact" class="btn-pkg" onclick="setPackageInterest('S')">สนใจแพ็คเกจ S</a>
         </div>
 
@@ -866,11 +887,12 @@
           <div class="pkg-section-label" style="margin-top:1.2rem;">สิ่งที่ได้รับ</div>
           <ul class="pkg-list">
             <li>Tracking ID & Photo Logs</li>
-            <li>รายงาน ESG มาตรฐานสากล</li>
+            <li>ESG Report <strong>1 ฉบับ</strong> (มาตรฐาน)</li>
             <li>Carbon Offset Certificate</li>
             <li>ดูแลการติดตั้ง MS License</li>
             <li class="off">สิทธิ Exclusive Partner</li>
           </ul>
+          <button class="btn-pkg-detail" onclick="openPkgDetail('M')">ดูรายละเอียด ESG Report →</button>
           <a href="#contact" class="btn-pkg" onclick="setPackageInterest('M')">สนใจแพ็คเกจ M</a>
         </div>
 
@@ -916,12 +938,13 @@
 
           <div class="pkg-section-label" style="margin-top:1.2rem;">สิ่งที่ได้รับ</div>
           <ul class="pkg-list">
-            <li>Full ESG Audit Report</li>
+            <li>ESG Report <strong>2 ฉบับ</strong> (กลางปี + จบโครงการ)</li>
             <li>รายงานวิเคราะห์สังคม (SROI)</li>
+            <li>Carbon Offset Certificate</li>
             <li>สิทธิการเป็น Exclusive Partner</li>
-            <li>ติดตั้ง License & Setup พิเศษ</li>
             <li>ESG Support ตลอดโครงการ</li>
           </ul>
+          <button class="btn-pkg-detail" onclick="openPkgDetail('L')">ดูรายละเอียด ESG Report →</button>
           <a href="#contact" class="btn-pkg" onclick="setPackageInterest('L')">สนใจแพ็คเกจ L</a>
         </div>
 
@@ -2193,5 +2216,131 @@
       }
     }
   </script>
+<!-- ESG Package Detail Modal -->
+<div id="pkgDetailModal" onclick="if(event.target===this)closePkgDetail()">
+  <div class="pkg-modal-box">
+    <div class="pkg-modal-header">
+      <div>
+        <p class="pkg-modal-title" id="pkgModalTitle"></p>
+        <p class="pkg-modal-sub" id="pkgModalSub"></p>
+      </div>
+      <button class="pkg-modal-close" onclick="closePkgDetail()">✕</button>
+    </div>
+    <div class="pkg-modal-body" id="pkgModalBody"></div>
+  </div>
+</div>
+
+<script>
+const PKG_DETAIL = {
+  S: {
+    title: 'ESG Report — Starter CSR',
+    sub: 'รายงาน 1 ฉบับต่อปี · ส่งมอบเมื่อสิ้นสุดโครงการ',
+    sections: [
+      {
+        label: 'ข้อมูลที่ระบุในรายงาน',
+        items: [
+          'สรุปจำนวนอุปกรณ์ที่บริจาคทั้งหมด แยกตามประเภท',
+          'ปริมาณ Carbon Saved (kgCO₂e) รวมตลอดโครงการ',
+          'รายชื่อโรงเรียน / องค์กรที่ได้รับอุปกรณ์ พร้อมที่อยู่',
+          'จำนวนนักเรียนที่ได้รับประโยชน์ (โดยประมาณ)',
+          'ภาพรวมผลกระทบเชิงสังคมเบื้องต้น',
+        ]
+      },
+      {
+        label: 'เอกสารที่ได้รับ',
+        items: [
+          'ไฟล์ PDF รายงาน ESG ฉบับพื้นฐาน (ตราสัญลักษณ์ GEARUP)',
+          'ใบประกาศเกียรติคุณองค์กร (Digital Certificate)',
+          'Tracking Summary แนบท้ายรายงาน',
+        ]
+      }
+    ]
+  },
+  M: {
+    title: 'ESG Report — Professional ESG',
+    sub: 'รายงาน 1 ฉบับต่อปี (มาตรฐาน) · ส่งมอบเมื่อสิ้นสุดโครงการ',
+    sections: [
+      {
+        label: 'ข้อมูลที่ระบุในรายงาน',
+        items: [
+          'ทุกอย่างใน Package S',
+          'แยกประเภทอุปกรณ์ละเอียด (Computer / Laptop / Tablet ฯลฯ)',
+          'ภาพถ่ายการส่งมอบพร้อมข้อมูลวันที่และสถานที่',
+          'ข้อมูลผลกระทบต่อผู้รับประโยชน์ (จำนวนนักเรียน, ระดับชั้น)',
+          'Carbon Offset คำนวณตามมาตรฐาน kgCO₂e ต่ออุปกรณ์',
+          'แผนภูมิและกราฟ Impact สำหรับใช้ในรายงานประจำปีองค์กร',
+        ]
+      },
+      {
+        label: 'เอกสารที่ได้รับ',
+        items: [
+          'ไฟล์ PDF รายงาน ESG มาตรฐาน พร้อม Infographic',
+          'Carbon Offset Certificate (ออกโดย GEARUP)',
+          'Photo Log ภาพถ่ายการส่งมอบทั้งหมด',
+          'Tracking Summary แนบท้ายรายงาน',
+        ]
+      }
+    ]
+  },
+  L: {
+    title: 'Full ESG Audit Report — Corporate Impact',
+    sub: 'รายงาน 2 ฉบับ · ฉบับที่ 1 กลางปี (ความคืบหน้า) · ฉบับที่ 2 จบโครงการ (สมบูรณ์)',
+    sections: [
+      {
+        label: 'ฉบับที่ 1 — รายงานกลางปี (Progress Report)',
+        items: [
+          'สรุปความคืบหน้าไตรมาส 1–2',
+          'จำนวนอุปกรณ์และโรงเรียนที่ดำเนินการแล้ว',
+          'ภาพถ่ายกิจกรรมระหว่างโครงการ',
+          'คาดการณ์ผลลัพธ์รวมเมื่อสิ้นสุดโครงการ',
+        ]
+      },
+      {
+        label: 'ฉบับที่ 2 — รายงานจบโครงการ (Full ESG Audit)',
+        items: [
+          'ทุกอย่างใน Package M เพิ่มความละเอียด',
+          'SROI Analysis — วิเคราะห์ผลตอบแทนเชิงสังคม (Social Return on Investment)',
+          'SDG Mapping — ระบุ SDGs ที่โครงการสอดคล้อง (SDG 4, 10, 12, 13)',
+          'Carbon Credit คำนวณละเอียดรายอุปกรณ์',
+          'Executive Summary สำหรับ Board Report / Annual Report',
+          'Media Kit + แม่แบบข่าวประชาสัมพันธ์ (พร้อมใช้)',
+        ]
+      },
+      {
+        label: 'เอกสารที่ได้รับ',
+        items: [
+          'รายงาน ESG ฉบับกลางปี (PDF)',
+          'Full ESG Audit Report ฉบับสมบูรณ์ (PDF)',
+          'Carbon Offset Certificate',
+          'SROI Report แนบท้าย',
+          'Media Kit ไฟล์ภาพและข่าวประชาสัมพันธ์',
+        ]
+      }
+    ]
+  }
+};
+
+function openPkgDetail(pkg) {
+  const d = PKG_DETAIL[pkg];
+  if (!d) return;
+  document.getElementById('pkgModalTitle').textContent = d.title;
+  document.getElementById('pkgModalSub').textContent = d.sub;
+  document.getElementById('pkgModalBody').innerHTML = d.sections.map(s => `
+    <div class="pkg-modal-section">
+      <div class="pkg-modal-section-title">${s.label}</div>
+      <ul class="pkg-modal-list">${s.items.map(i => `<li>${i}</li>`).join('')}</ul>
+    </div>
+  `).join('');
+  document.getElementById('pkgDetailModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePkgDetail() {
+  document.getElementById('pkgDetailModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePkgDetail(); });
+</script>
 </body>
 </html>
