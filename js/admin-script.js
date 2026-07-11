@@ -2701,7 +2701,7 @@ async function openEsgReport(corporateId) {
 
     const bodyEl = document.getElementById('esgReportBody');
     bodyEl.innerHTML = '<p style="color:var(--text-muted)">กำลังโหลดข้อมูล...</p>';
-    document.getElementById('btnGenerateEsg').dataset.corpId = corporateId;
+    document.getElementById('btnGenerateEsgWord').dataset.corpId = corporateId;
     openModal('modalEsgReport');
 
     try {
@@ -2756,14 +2756,13 @@ async function openEsgReport(corporateId) {
             </table></div>
           ` : '<p style="color:var(--text-muted);padding:1rem 0">ยังไม่มีการบริจาคที่เชื่อมโยงกับองค์กรนี้</p>'}
           <p style="color:var(--text-muted);font-size:0.85rem;margin-top:1rem">
-            * Carbon Saved คำนวณจากน้ำหนักรวม × 125 kgCO₂e/kg (ค่าเฉลี่ย)<br>
-            * PDF จะถูก generate และดาวน์โหลดอัตโนมัติ
+            * Carbon Saved คำนวณจากน้ำหนักรวม × 125 kgCO₂e/kg (ค่าเฉลี่ย)
           </p>`;
 
-        // Store data for PDF generation
-        document.getElementById('btnGenerateEsg').dataset.totalItems = totalItems;
-        document.getElementById('btnGenerateEsg').dataset.totalWeight = totalWeight;
-        document.getElementById('btnGenerateEsg').dataset.carbonSaved = carbonSaved;
+        // Store data for Word generation
+        document.getElementById('btnGenerateEsgWord').dataset.totalItems = totalItems;
+        document.getElementById('btnGenerateEsgWord').dataset.totalWeight = totalWeight;
+        document.getElementById('btnGenerateEsgWord').dataset.carbonSaved = carbonSaved;
     } catch (err) {
         bodyEl.innerHTML = `<p style="color:var(--danger)">${escapeHtml(err.message)}</p>`;
     }
@@ -2984,7 +2983,7 @@ function showAdminNotification(msg, type = 'success') {
 // ============================================================
 
 async function generateEsgWord() {
-    const corpId = document.getElementById('btnGenerateEsg').dataset.corpId;
+    const corpId = document.getElementById('btnGenerateEsgWord').dataset.corpId;
     const r = _corporateCache[corpId];
     if (!r) { showAdminNotification('ไม่พบข้อมูลองค์กร', 'error'); return; }
 
