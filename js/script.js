@@ -2073,7 +2073,7 @@ function initializeDeviceSelector() {
     const reqUploadDoc = document.getElementById('reqUploadDoc');
     if (reqUploadDoc) {
         reqUploadDoc.addEventListener('change', (e) => {
-            const MAX = 10 * 1024 * 1024;
+            const MAX = 15 * 1024 * 1024;
             Array.from(e.target.files).forEach(f => {
                 if (f.size > MAX) { showNotification(`ไฟล์ ${f.name} ใหญ่เกิน 10MB`, 'error'); return; }
                 if (!_reqDocFiles.find(x => x.name === f.name && x.size === f.size)) _reqDocFiles.push(f);
