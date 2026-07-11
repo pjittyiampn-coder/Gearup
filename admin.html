@@ -2262,21 +2262,6 @@
           <textarea id="corpNotes" class="form-control" rows="2" style="resize:vertical"></textarea>
         </div>
 
-        <!-- ESG Reports — only shown when editing existing account -->
-        <div id="corpEsgSection" style="display:none;margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1rem;">
-          <div style="font-weight:700;margin-bottom:0.6rem;color:var(--primary);font-size:0.95rem;">&#128196; รายงาน ESG</div>
-          <div id="corpEsgList" style="margin-bottom:0.75rem;"></div>
-          <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
-            <input type="text" id="esgReportLabel" class="form-control"
-                   placeholder="ชื่อรอบ เช่น กลางปี 2569" style="flex:1;min-width:160px;">
-            <input type="file" id="esgReportFile" accept=".pdf,.doc,.docx"
-                   style="display:none;" onchange="uploadEsgReport()">
-            <button class="btn-act teal" id="btnEsgUpload"
-                    onclick="document.getElementById('esgReportFile').click()">
-              &#11014; อัปโหลดรายงาน
-            </button>
-          </div>
-        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeModal('modalCorporate')">ยกเลิก</button>
@@ -2298,6 +2283,37 @@
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeModal('modalEsgReport')">ปิด</button>
         <button class="btn btn-secondary" id="btnGenerateEsgWord" onclick="generateEsgWord()">&#128196; ดาวน์โหลด Word (.doc)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL: ESG FILES ========== -->
+  <div class="modal-overlay" id="modalEsgFiles">
+    <div class="modal-box" style="max-width:560px;">
+      <div class="modal-header">
+        <h2>&#128196; ไฟล์ ESG Report — <span id="esgFilesOrgName" style="font-weight:400;font-size:1rem;"></span></h2>
+        <button class="modal-close" onclick="closeModal('modalEsgFiles')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- List -->
+        <div id="corpEsgList" style="margin-bottom:1rem;min-height:40px;"></div>
+        <!-- Upload row -->
+        <div style="border-top:1px solid var(--border);padding-top:1rem;">
+          <div style="font-size:0.85rem;font-weight:600;color:var(--text-muted);margin-bottom:0.5rem;">เพิ่มรายงานใหม่</div>
+          <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
+            <input type="text" id="esgReportLabel" class="form-control"
+                   placeholder="ชื่อรอบ เช่น กลางปี 2569" style="flex:1;min-width:160px;">
+            <input type="file" id="esgReportFile" accept=".pdf,.doc,.docx"
+                   style="display:none;" onchange="uploadEsgReport()">
+            <button class="btn-act teal" id="btnEsgUpload"
+                    onclick="document.getElementById('esgReportFile').click()">
+              &#11014; อัปโหลด
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalEsgFiles')">ปิด</button>
       </div>
     </div>
   </div>

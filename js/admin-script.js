@@ -2557,6 +2557,7 @@ async function loadCorporateAccounts() {
               <td>
                 <div style="display:flex;flex-wrap:wrap;gap:0.3rem;">
                   <button class="btn-act" onclick="openCorporateModal('${r.id}')">แก้ไข</button>
+                  <button class="btn-act teal" onclick="openEsgFiles('${r.id}')">&#128196; ไฟล์ ESG</button>
                   <button class="btn-act btn-act-purple" onclick="openEsgReport('${r.id}')">ESG Report</button>
                   <button class="btn-act btn-act-del" onclick="deleteCorporateAccount('${r.id}', '${escapeHtml(r.org_name)}')">ลบ</button>
                 </div>
@@ -2593,7 +2594,6 @@ function openCorporateModal(id = null) {
     document.getElementById('corpStartDate').value = '';
     document.getElementById('corpEndDate').value = '';
 
-    const esgSection = document.getElementById('corpEsgSection');
     if (id && _corporateCache[id]) {
         const r = _corporateCache[id];
         document.getElementById('corpId').value = r.id;
@@ -2609,12 +2609,6 @@ function openCorporateModal(id = null) {
         document.getElementById('corpEndDate').value = r.end_date || '';
         document.getElementById('corpStatus').value = r.status || 'active';
         document.getElementById('corpNotes').value = r.notes || '';
-        if (esgSection) {
-            esgSection.style.display = 'block';
-            renderEsgReportList(id, r.esg_report_urls || []);
-        }
-    } else {
-        if (esgSection) esgSection.style.display = 'none';
     }
     openModal('modalCorporate');
 }
@@ -2702,6 +2696,17 @@ async function saveCorporate() {
 
 // ---- ESG REPORT MANAGEMENT ----
 
+function openEsgFiles(corpId) {
+    const r = _corporateCache[corpId];
+    if (!r) { showAdminNotification('ไม่พบข้อมูลองค์กร', 'error'); return; }
+    document.getElementById('corpId').value = corpId;
+    document.getElementById('esgFilesOrgName').textContent = r.org_name || '';
+    document.getElementById('esgReportLabel').value = '';
+    if (document.getElementById('esgReportFile')) document.getElementById('esgReportFile').value = '';
+    renderEsgReportList(corpId, r.esg_report_urls || []);
+    openModal('modalEsgFiles');
+}
+
 function renderEsgReportList(corpId, reports) {
     const el = document.getElementById('corpEsgList');
     if (!el) return;
@@ -2710,16 +2715,17 @@ function renderEsgReportList(corpId, reports) {
         return;
     }
     el.innerHTML = reports.map((rep, i) => `
-        <div style="display:flex;align-items:center;gap:0.6rem;background:#f8f6f3;border-radius:8px;
-                    padding:0.45rem 0.75rem;margin-bottom:0.4rem;">
-          <span style="font-size:1rem;">&#128196;</span>
-          <span style="flex:1;font-size:0.88rem;font-weight:600;">${escapeHtml(rep.label)}
-            <span style="font-weight:400;color:#aaa;font-size:0.78rem;margin-left:0.4rem;">${rep.uploaded_at || ''}</span>
-          </span>
-          <a href="${escapeHtml(rep.url)}" target="_blank" class="btn-act green"
-             style="padding:0.2rem 0.65rem;font-size:0.78rem;">ดู</a>
-          <button onclick="deleteEsgReport('${corpId}', ${i})" class="btn-act del"
-                  style="padding:0.2rem 0.65rem;font-size:0.78rem;">ลบ</button>
+        <div style="display:flex;align-items:center;gap:0.75rem;background:#f8f6f3;border-radius:10px;
+                    padding:0.65rem 0.9rem;margin-bottom:0.45rem;border:1px solid var(--border);">
+          <span style="font-size:1.3rem;flex-shrink:0;">&#128196;</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:0.9rem;font-weight:600;color:var(--text);">${escapeHtml(rep.label)}</div>
+            <div style="font-size:0.78rem;color:#aaa;margin-top:0.1rem;">
+              ${rep.filename ? escapeHtml(rep.filename) + ' · ' : ''}${rep.uploaded_at || ''}
+            </div>
+          </div>
+          <a href="${escapeHtml(rep.url)}" target="_blank" class="btn-act green">&#128065; ดู</a>
+          <button onclick="deleteEsgReport('${corpId}', ${i})" class="btn-act del">&#128465; ลบ</button>
         </div>`).join('');
 }
 
