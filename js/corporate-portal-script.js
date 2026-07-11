@@ -570,6 +570,36 @@ function renderPackageInfo() {
       })()}
       ${progressHtml}
       ${evtSummaryHtml}
+      ${(() => {
+        const reports = acc.esg_report_urls || [];
+        if (reports.length === 0) return '';
+        return `
+        <div style="margin-top:1.5rem;border-top:1px solid #f0ece8;padding-top:1.25rem;">
+          <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:0.95rem;
+                      color:#1a2421;margin-bottom:0.75rem;">&#128196; รายงาน ESG ของคุณ</div>
+          ${reports.map(rep => `
+          <a href="${escapeHtml(rep.url)}" target="_blank" download
+             style="display:flex;align-items:center;gap:0.85rem;background:#f0f4f1;
+                    border:1.5px solid #c5d5c7;border-radius:10px;padding:0.75rem 1rem;
+                    margin-bottom:0.5rem;text-decoration:none;color:#1a2421;
+                    transition:background 0.18s,border-color 0.18s;"
+             onmouseover="this.style.background='#e4ede6';this.style.borderColor='#2f5233'"
+             onmouseout="this.style.background='#f0f4f1';this.style.borderColor='#c5d5c7'">
+            <span style="font-size:1.6rem;flex-shrink:0;">&#128229;</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:0.92rem;color:#1a2421;">
+                ${escapeHtml(rep.label)}
+              </div>
+              <div style="font-size:0.78rem;color:#6b7c72;margin-top:0.1rem;">
+                ${rep.filename ? escapeHtml(rep.filename) + ' · ' : ''}${rep.uploaded_at || ''}
+              </div>
+            </div>
+            <span style="font-size:0.82rem;color:#2f5233;font-weight:700;flex-shrink:0;">
+              ดาวน์โหลด ↓
+            </span>
+          </a>`).join('')}
+        </div>`;
+      })()}
     </div>`;
 }
 

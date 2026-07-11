@@ -2593,6 +2593,7 @@ function openCorporateModal(id = null) {
     document.getElementById('corpStartDate').value = '';
     document.getElementById('corpEndDate').value = '';
 
+    const esgSection = document.getElementById('corpEsgSection');
     if (id && _corporateCache[id]) {
         const r = _corporateCache[id];
         document.getElementById('corpId').value = r.id;
@@ -2608,6 +2609,12 @@ function openCorporateModal(id = null) {
         document.getElementById('corpEndDate').value = r.end_date || '';
         document.getElementById('corpStatus').value = r.status || 'active';
         document.getElementById('corpNotes').value = r.notes || '';
+        if (esgSection) {
+            esgSection.style.display = 'block';
+            renderEsgReportList(id, r.esg_report_urls || []);
+        }
+    } else {
+        if (esgSection) esgSection.style.display = 'none';
     }
     openModal('modalCorporate');
 }
@@ -2691,6 +2698,87 @@ async function saveCorporate() {
     } finally {
         if (_corpBtn) _corpBtn.disabled = false;
     }
+}
+
+// ---- ESG REPORT MANAGEMENT ----
+
+function renderEsgReportList(corpId, reports) {
+    const el = document.getElementById('corpEsgList');
+    if (!el) return;
+    if (!reports || reports.length === 0) {
+        el.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;margin:0;">ยังไม่มีรายงาน</p>';
+        return;
+    }
+    el.innerHTML = reports.map((rep, i) => `
+        <div style="display:flex;align-items:center;gap:0.6rem;background:#f8f6f3;border-radius:8px;
+                    padding:0.45rem 0.75rem;margin-bottom:0.4rem;">
+          <span style="font-size:1rem;">&#128196;</span>
+          <span style="flex:1;font-size:0.88rem;font-weight:600;">${escapeHtml(rep.label)}
+            <span style="font-weight:400;color:#aaa;font-size:0.78rem;margin-left:0.4rem;">${rep.uploaded_at || ''}</span>
+          </span>
+          <a href="${escapeHtml(rep.url)}" target="_blank" class="btn-act green"
+             style="padding:0.2rem 0.65rem;font-size:0.78rem;">ดู</a>
+          <button onclick="deleteEsgReport('${corpId}', ${i})" class="btn-act del"
+                  style="padding:0.2rem 0.65rem;font-size:0.78rem;">ลบ</button>
+        </div>`).join('');
+}
+
+async function uploadEsgReport() {
+    const corpId = document.getElementById('corpId').value;
+    if (!corpId) return;
+    const label = document.getElementById('esgReportLabel').value.trim() || 'รายงาน ESG';
+    const fileInput = document.getElementById('esgReportFile');
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const btn = document.getElementById('btnEsgUpload');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังอัปโหลด...'; }
+
+    try {
+        const ext = file.name.split('.').pop();
+        const path = `${corpId}/esg-reports/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabaseClient.storage
+            .from('corporate-files').upload(path, file, { upsert: true });
+        if (upErr) throw upErr;
+
+        const { data: { publicUrl } } = supabaseClient.storage
+            .from('corporate-files').getPublicUrl(path);
+
+        const current = _corporateCache[corpId]?.esg_report_urls || [];
+        const updated = [...current, {
+            label,
+            url: publicUrl,
+            filename: file.name,
+            uploaded_at: new Date().toISOString().split('T')[0],
+        }];
+
+        const { error } = await supabaseClient.from('corporate_accounts')
+            .update({ esg_report_urls: updated }).eq('id', corpId);
+        if (error) throw error;
+
+        if (_corporateCache[corpId]) _corporateCache[corpId].esg_report_urls = updated;
+        renderEsgReportList(corpId, updated);
+        document.getElementById('esgReportLabel').value = '';
+        fileInput.value = '';
+        showAdminNotification('อัปโหลดรายงาน ESG สำเร็จ');
+    } catch (err) {
+        showAdminNotification('อัปโหลดไม่สำเร็จ: ' + err.message, 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '&#11014; อัปโหลดรายงาน'; }
+    }
+}
+
+async function deleteEsgReport(corpId, index) {
+    if (!await showConfirm('ลบรายงาน ESG', 'ต้องการลบรายงานนี้ออกจากระบบ?')) return;
+    const r = _corporateCache[corpId];
+    if (!r) return;
+    const updated = (r.esg_report_urls || []).filter((_, i) => i !== index);
+    const { error } = await supabaseClient.from('corporate_accounts')
+        .update({ esg_report_urls: updated }).eq('id', corpId);
+    if (error) { showAdminNotification('ลบไม่สำเร็จ: ' + error.message, 'error'); return; }
+    if (_corporateCache[corpId]) _corporateCache[corpId].esg_report_urls = updated;
+    renderEsgReportList(corpId, updated);
+    showAdminNotification('ลบรายงาน ESG แล้ว');
 }
 
 // ---- ESG PDF REPORT ----

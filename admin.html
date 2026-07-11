@@ -2261,6 +2261,22 @@
           <label>หมายเหตุ</label>
           <textarea id="corpNotes" class="form-control" rows="2" style="resize:vertical"></textarea>
         </div>
+
+        <!-- ESG Reports — only shown when editing existing account -->
+        <div id="corpEsgSection" style="display:none;margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1rem;">
+          <div style="font-weight:700;margin-bottom:0.6rem;color:var(--primary);font-size:0.95rem;">&#128196; รายงาน ESG</div>
+          <div id="corpEsgList" style="margin-bottom:0.75rem;"></div>
+          <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
+            <input type="text" id="esgReportLabel" class="form-control"
+                   placeholder="ชื่อรอบ เช่น กลางปี 2569" style="flex:1;min-width:160px;">
+            <input type="file" id="esgReportFile" accept=".pdf,.doc,.docx"
+                   style="display:none;" onchange="uploadEsgReport()">
+            <button class="btn-act teal" id="btnEsgUpload"
+                    onclick="document.getElementById('esgReportFile').click()">
+              &#11014; อัปโหลดรายงาน
+            </button>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeModal('modalCorporate')">ยกเลิก</button>
