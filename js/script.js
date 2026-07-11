@@ -2051,21 +2051,38 @@ function initializeDeviceSelector() {
             document.getElementById('reqUploadDoc')?.click();
         });
     }
+    // Multi-file upload for request documents
+    let _reqDocFiles = [];
+    function renderReqDocFileList() {
+        const list = document.getElementById('reqDocFileList');
+        if (!list) return;
+        if (_reqDocFiles.length === 0) { list.innerHTML = ''; return; }
+        list.innerHTML = _reqDocFiles.map((f, i) => `
+            <div style="display:flex;align-items:center;gap:0.5rem;background:#f0f4f1;border-radius:8px;padding:0.35rem 0.7rem;font-size:0.83rem;color:#2f5233;">
+                <span>📎</span>
+                <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.name}</span>
+                <span style="font-size:0.75rem;color:#888;flex-shrink:0;">${(f.size/1024/1024).toFixed(1)}MB</span>
+                <button type="button" onclick="removeReqDoc(${i})" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:1rem;line-height:1;padding:0 2px;flex-shrink:0;">×</button>
+            </div>
+        `).join('');
+    }
+    window.removeReqDoc = function(i) {
+        _reqDocFiles.splice(i, 1);
+        renderReqDocFileList();
+    };
     const reqUploadDoc = document.getElementById('reqUploadDoc');
     if (reqUploadDoc) {
         reqUploadDoc.addEventListener('change', (e) => {
-            const fileNameEl = document.getElementById('reqDocFileName');
-            if (fileNameEl) {
-                if (e.target.files.length > 0) {
-                    const names = Array.from(e.target.files).map(f => f.name).join(', ');
-                    fileNameEl.textContent = `📎 ${names}`;
-                    fileNameEl.style.display = 'block';
-                } else {
-                    fileNameEl.style.display = 'none';
-                }
-            }
+            const MAX = 10 * 1024 * 1024;
+            Array.from(e.target.files).forEach(f => {
+                if (f.size > MAX) { showNotification(`ไฟล์ ${f.name} ใหญ่เกิน 10MB`, 'error'); return; }
+                if (!_reqDocFiles.find(x => x.name === f.name && x.size === f.size)) _reqDocFiles.push(f);
+            });
+            e.target.value = '';
+            renderReqDocFileList();
         });
     }
+    window._getReqDocFiles = () => _reqDocFiles;
 }
 
 // === DONATE FORM STEPS ===
@@ -2627,7 +2644,7 @@ function nextReqStep(step) {
             const qty = parseInt(sec.querySelector('.req-dev-quantity')?.value || '0');
             if (!qty || qty < 1) { showNotification(`กรุณากรอกจำนวนอุปกรณ์ที่ต้องการสำหรับ${dt}`, 'error'); return; }
         }
-        const docFiles = document.getElementById('reqUploadDoc')?.files;
+        const docFiles = window._getReqDocFiles ? window._getReqDocFiles() : [];
         if (!docFiles || docFiles.length === 0) {
             showNotification('กรุณาแนบเอกสารประกอบคำขอ (หนังสือราชการที่มีลายเซ็น ผอ. หรือรูปภาพโรงเรียน) อย่างน้อย 1 ไฟล์', 'error');
             return;
@@ -2937,21 +2954,26 @@ async function submitRequest() {
         // Generate tracking ID client-side: GU-REQ-DD/MM/YYYY-XXXX
         const trackingId = await generateTrackingId('REQ');
 
-        // Upload document to Supabase Storage if selected
+        // Upload documents to Supabase Storage (multi-file)
         let documentUrl = null;
-        const docFile = document.getElementById('reqUploadDoc')?.files?.[0];
-        if (docFile) {
-            const ext = docFile.name.split('.').pop();
-            const path = `${currentUser.id}/${trackingIdToPath(trackingId)}/document.${ext}`;
-            const { error: uploadError } = await supabaseClient.storage
-                .from('donation-photos')
-                .upload(path, docFile, { upsert: true });
-            if (!uploadError) {
-                const { data: { publicUrl } } = supabaseClient.storage
+        const docFiles = window._getReqDocFiles ? window._getReqDocFiles() : [];
+        if (docFiles.length > 0) {
+            const urls = [];
+            for (let i = 0; i < docFiles.length; i++) {
+                const f = docFiles[i];
+                const ext = f.name.split('.').pop();
+                const path = `${currentUser.id}/${trackingIdToPath(trackingId)}/document-${i}.${ext}`;
+                const { error: uploadError } = await supabaseClient.storage
                     .from('donation-photos')
-                    .getPublicUrl(path);
-                documentUrl = publicUrl;
+                    .upload(path, f, { upsert: true });
+                if (!uploadError) {
+                    const { data: { publicUrl } } = supabaseClient.storage
+                        .from('donation-photos')
+                        .getPublicUrl(path);
+                    urls.push(publicUrl);
+                }
             }
+            documentUrl = urls.length === 1 ? urls[0] : JSON.stringify(urls);
         }
 
         // Insert request
@@ -5029,8 +5051,13 @@ async function loadRequestPosts() {
             }
 
             const isImageUrl = (url) => url && /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url);
+            const getFirstImgUrl = (raw) => {
+                if (!raw) return null;
+                if (raw.startsWith('[')) { try { const a = JSON.parse(raw); return a.find(u => isImageUrl(u)) || null; } catch(e){} }
+                return isImageUrl(raw) ? raw : null;
+            };
             const postImg = post.post_image_url ||
-                (isImageUrl(post.document_url) ? post.document_url : null) ||
+                getFirstImgUrl(post.document_url) ||
                 'https://images.unsplash.com/photo-1588072432836-e10032774350?w=400&h=300&fit=crop';
 
             return `
@@ -5136,8 +5163,13 @@ function showDonationTargetBanner() {
     const equip = getEquipLabels(p.equipment_type) || p.equipment_type || '';
     const org = orgLabels[p.org_type] || p.org_type || '';
     const isImgUrl = (u) => u && /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(u);
+    const getFirstImg = (raw) => {
+        if (!raw) return null;
+        if (raw.startsWith('[')) { try { const a = JSON.parse(raw); return a.find(u => isImgUrl(u)) || null; } catch(e){} }
+        return isImgUrl(raw) ? raw : null;
+    };
     const defaultImg = 'https://images.unsplash.com/photo-1588072432836-e10032774350?w=400&h=300&fit=crop';
-    const img = p.post_image_url || (isImgUrl(p.document_url) ? p.document_url : null) || defaultImg;
+    const img = p.post_image_url || getFirstImg(p.document_url) || defaultImg;
     banner.style.display = 'block';
     banner.innerHTML = `
         <div class="donation-target-banner">
