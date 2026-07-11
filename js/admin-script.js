@@ -2744,7 +2744,7 @@ async function uploadEsgReport() {
         const ext = file.name.split('.').pop();
         const path = `${corpId}/esg-reports/${Date.now()}.${ext}`;
         const { error: upErr } = await supabaseClient.storage
-            .from('corporate-files').upload(path, file, { upsert: true });
+            .from('corporate-files').upload(path, file, { upsert: true, contentType: 'application/octet-stream' });
         if (upErr) throw upErr;
 
         const { data: { publicUrl } } = supabaseClient.storage
