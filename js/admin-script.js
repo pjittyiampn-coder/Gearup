@@ -2702,7 +2702,10 @@ function openEsgFiles(corpId) {
     document.getElementById('corpId').value = corpId;
     document.getElementById('esgFilesOrgName').textContent = r.org_name || '';
     document.getElementById('esgReportLabel').value = '';
-    if (document.getElementById('esgReportFile')) document.getElementById('esgReportFile').value = '';
+    const fi = document.getElementById('esgReportFile');
+    if (fi) fi.value = '';
+    const fd = document.getElementById('esgFileNameDisplay');
+    if (fd) fd.textContent = 'ยังไม่ได้เลือกไฟล์';
     renderEsgReportList(corpId, r.esg_report_urls || []);
     openModal('modalEsgFiles');
 }
@@ -2729,13 +2732,19 @@ function renderEsgReportList(corpId, reports) {
         </div>`).join('');
 }
 
+function onEsgFileSelected(input) {
+    const display = document.getElementById('esgFileNameDisplay');
+    if (display) display.textContent = input.files[0] ? input.files[0].name : 'ยังไม่ได้เลือกไฟล์';
+}
+
 async function uploadEsgReport() {
     const corpId = document.getElementById('corpId').value;
     if (!corpId) return;
-    const label = document.getElementById('esgReportLabel').value.trim() || 'รายงาน ESG';
+    const label = document.getElementById('esgReportLabel').value.trim();
+    if (!label) { showAdminNotification('กรุณากรอกชื่อรอบรายงานก่อน', 'error'); return; }
     const fileInput = document.getElementById('esgReportFile');
     const file = fileInput.files[0];
-    if (!file) return;
+    if (!file) { showAdminNotification('กรุณาเลือกไฟล์ก่อน', 'error'); return; }
 
     const btn = document.getElementById('btnEsgUpload');
     if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังอัปโหลด...'; }
@@ -2766,6 +2775,8 @@ async function uploadEsgReport() {
         renderEsgReportList(corpId, updated);
         document.getElementById('esgReportLabel').value = '';
         fileInput.value = '';
+        const fd = document.getElementById('esgFileNameDisplay');
+        if (fd) fd.textContent = 'ยังไม่ได้เลือกไฟล์';
         showAdminNotification('อัปโหลดรายงาน ESG สำเร็จ');
     } catch (err) {
         showAdminNotification('อัปโหลดไม่สำเร็จ: ' + err.message, 'error');

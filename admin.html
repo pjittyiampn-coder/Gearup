@@ -2297,19 +2297,34 @@
       <div class="modal-body">
         <!-- List -->
         <div id="corpEsgList" style="margin-bottom:1rem;min-height:40px;"></div>
-        <!-- Upload row -->
+        <!-- Upload form -->
         <div style="border-top:1px solid var(--border);padding-top:1rem;">
-          <div style="font-size:0.85rem;font-weight:600;color:var(--text-muted);margin-bottom:0.5rem;">เพิ่มรายงานใหม่</div>
-          <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
+          <div style="font-size:0.85rem;font-weight:600;color:var(--text-muted);margin-bottom:0.75rem;">เพิ่มรายงานใหม่</div>
+          <!-- Step 1: label -->
+          <div class="form-group" style="margin-bottom:0.65rem;">
+            <label style="font-size:0.82rem;">ชื่อรอบรายงาน *</label>
             <input type="text" id="esgReportLabel" class="form-control"
-                   placeholder="ชื่อรอบ เช่น กลางปี 2569" style="flex:1;min-width:160px;">
-            <input type="file" id="esgReportFile" accept=".pdf,.doc,.docx"
-                   style="display:none;" onchange="uploadEsgReport()">
-            <button class="btn-act teal" id="btnEsgUpload"
-                    onclick="document.getElementById('esgReportFile').click()">
-              &#11014; อัปโหลด
-            </button>
+                   placeholder="เช่น กลางปี 2569 หรือ จบโครงการ 2569">
           </div>
+          <!-- Step 2: file picker -->
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <label style="font-size:0.82rem;">ไฟล์รายงาน (PDF / Word) *</label>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              <input type="file" id="esgReportFile" accept=".pdf,.doc,.docx" style="display:none;"
+                     onchange="onEsgFileSelected(this)">
+              <button class="btn btn-outline" style="font-size:0.85rem;padding:0.4rem 1rem;"
+                      onclick="document.getElementById('esgReportFile').click()">
+                &#128206; เลือกไฟล์...
+              </button>
+              <span id="esgFileNameDisplay" style="font-size:0.83rem;color:var(--text-muted);flex:1;
+                    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ยังไม่ได้เลือกไฟล์</span>
+            </div>
+          </div>
+          <!-- Step 3: submit -->
+          <button class="btn btn-primary" id="btnEsgUpload" onclick="uploadEsgReport()"
+                  style="width:100%;">
+            &#11014; อัปโหลดรายงาน
+          </button>
         </div>
       </div>
       <div class="modal-footer">
