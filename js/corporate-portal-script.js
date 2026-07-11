@@ -569,7 +569,6 @@ function renderPackageInfo() {
         </div>`;
       })()}
       ${progressHtml}
-      ${evtSummaryHtml}
       ${(() => {
         const reports = acc.esg_report_urls || [];
         if (reports.length === 0) return '';
@@ -600,6 +599,7 @@ function renderPackageInfo() {
           </a>`).join('')}
         </div>`;
       })()}
+      ${evtSummaryHtml}
     </div>`;
 }
 
