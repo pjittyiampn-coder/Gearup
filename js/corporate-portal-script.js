@@ -527,13 +527,6 @@ function renderPackageInfo() {
             ${escapeHtml(pkgDesc[acc.package] || 'แพ็คเกจ GEARUP CSR')}
           </div>
         </div>
-        <div style="text-align:right;flex-shrink:0;">
-          <div style="font-family:'Playfair Display',serif;font-size:1.5rem;
-                      font-weight:800;color:${color};">
-            ${pkgPrices[acc.package] || '—'}
-          </div>
-          <div style="font-size:0.78rem;color:#9ca3af;">บาท / ปี</div>
-        </div>
       </div>
 
       <div style="height:1px;background:#f0ece8;margin-bottom:1.25rem;"></div>
@@ -555,6 +548,26 @@ function renderPackageInfo() {
           </div>`).join('')}
       </div>
 
+      <!-- Device quota progress bar -->
+      ${(() => {
+        const donated = acc.device_count || 0;
+        const quota = acc.quota_max || (acc.package === 'S' ? 20 : acc.package === 'M' ? 70 : 150);
+        const pct = Math.min(100, Math.round((donated / quota) * 100));
+        return `
+        <div style="margin-top:1.25rem;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;
+                      font-size:0.83rem;color:#6b7c72;margin-bottom:0.45rem;">
+            <span style="font-weight:600;color:#1a2421;">จำนวนเครื่องที่บริจาค</span>
+            <span><strong style="color:${color};font-size:1rem;">${donated}</strong> / ${quota} เครื่อง (${pct}%)</span>
+          </div>
+          <div style="height:12px;background:#e5e7eb;border-radius:6px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:${color};border-radius:6px;transition:width 1s;"></div>
+          </div>
+          <div style="font-size:0.75rem;color:#9ca3af;margin-top:0.3rem;text-align:right;">
+            เหลืออีก ${Math.max(0, quota - donated)} เครื่องตามโควต้าแพ็คเกจ
+          </div>
+        </div>`;
+      })()}
       ${progressHtml}
       ${evtSummaryHtml}
     </div>`;
