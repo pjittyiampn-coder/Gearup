@@ -3413,7 +3413,9 @@ async function searchTracking() {
 
 // Display a single tracking result
 function displayTrackingResult(data) {
-    document.getElementById('trackResults').style.display = 'block';
+    const trackResultsEl = document.getElementById('trackResults');
+    trackResultsEl.style.display = 'block';
+    setTimeout(() => trackResultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
     document.getElementById('trackMultiple').style.display = 'none';
     document.getElementById('emptyState').style.display = 'none';
 
@@ -3476,6 +3478,11 @@ async function loadDonorConfirmPanel(data) {
     if (!['distributed', 'completed'].includes(data.current_status)) return;
     if (!data.direct_donation_to_request_id) return;
 
+    const stepsContainer = document.getElementById('timelineSteps');
+    if (!stepsContainer) return;
+    // Prevent duplicate step if already added
+    if (stepsContainer.querySelector('.donor-confirm-step')) return;
+
     try {
         const [{ data: conf }, { data: req }] = await Promise.all([
             supabaseClient.from('recipient_confirmations').select('*').eq('request_id', data.direct_donation_to_request_id).maybeSingle(),
@@ -3487,20 +3494,40 @@ async function loadDonorConfirmPanel(data) {
         const orgName = req?.org_name || req?.contact_name || 'ผู้รับบริจาค';
         const confirmedDate = conf.confirmed_at ? formatThaiDateTime(conf.confirmed_at) : '—';
         const confirmerSuffix = conf.confirmed_by_name ? ` · โดย ${escapeHtml(conf.confirmed_by_name)}` : '';
-        const noteHtml = conf.notes ? `<div class="step-note">${escapeHtml(conf.notes)}</div>` : '';
 
-        const stepsContainer = document.getElementById('timelineSteps');
-        if (!stepsContainer) return;
+        // Parse perItem notes → render as device cards
+        const DEVICE_TH_LABEL = { Computer:'คอมพิวเตอร์', Laptop:'แล็ปท็อป', Tablet:'แท็บเล็ต', Phone:'โทรศัพท์' };
+        let itemCardsHtml = '';
+        try {
+            const parsed = typeof conf.notes === 'string' ? JSON.parse(conf.notes) : conf.notes;
+            const items = parsed?.perItem || [];
+            if (items.length > 0) {
+                itemCardsHtml = `<div class="conf-item-list">${items.map((it, i) => {
+                    const typeTh = DEVICE_TH_LABEL[it.type] || it.type || '';
+                    const detail = [it.brand, it.model].filter(Boolean).join(' ');
+                    const statusTh = it.status === 'defective' ? 'มีปัญหา' : 'ใช้งานได้';
+                    const noteText = it.note ? `<span class="conf-item-note">${escapeHtml(it.note)}</span>` : '';
+                    return `<div class="conf-item-card">
+                        <span class="conf-item-num">${i + 1}</span>
+                        <div class="conf-item-body">
+                            <span class="conf-item-badge">${escapeHtml(typeTh)}</span>
+                            <span class="conf-item-detail">${escapeHtml(detail)}</span>
+                        </div>
+                        <span class="conf-item-status ${it.status === 'defective' ? 'bad' : ''}">${statusTh}</span>
+                        ${noteText}
+                    </div>`;
+                }).join('')}</div>`;
+            }
+        } catch (_) {}
 
         const stepDiv = document.createElement('div');
-        stepDiv.className = 'timeline-step completed';
+        stepDiv.className = 'timeline-step completed donor-confirm-step';
         stepDiv.innerHTML = `
             <div class="step-circle">&#10003;</div>
             <div class="step-content">
                 <div class="step-label">${escapeHtml(orgName)} ยืนยันรับแล้ว</div>
-                <div class="step-sublabel">Recipient Confirmed</div>
                 <div class="step-date">${confirmedDate}${confirmerSuffix}</div>
-                ${noteHtml}
+                ${itemCardsHtml}
             </div>`;
         stepsContainer.appendChild(stepDiv);
     } catch (_) {}
@@ -3560,7 +3587,6 @@ function renderTimelineSteps(statusFlow, timeline, currentStatus) {
             <div class="step-circle">${circleContent}</div>
             <div class="step-content">
                 <div class="step-label">${getStatusDisplayTh(status)}</div>
-                <div class="step-sublabel">${getStatusDisplayEn(status)}</div>
                 ${timelineEntry ? `<div class="step-date">${formatThaiDateTime(timelineEntry.created_at)}</div>` : ''}
                 ${timelineEntry && timelineEntry.note ? `<div class="step-note">${escapeHtml(timelineEntry.note)}</div>` : ''}
             </div>
@@ -3612,22 +3638,22 @@ function showTrackingEmpty() {
 // Status display helpers
 function getStatusDisplayTh(status) {
     const map = {
-        'submitted': 'ส่งคำขอแล้ว',
-        'verified': 'ตรวจสอบเรียบร้อย',
-        'scheduled': 'นัดหมายแล้ว',
-        'picked_up': 'รับอุปกรณ์แล้ว',
-        'processing': 'กำลังตรวจสอบ',
-        'data_wiped': 'ลบข้อมูลแล้ว',
-        'ready': 'พร้อมส่งมอบ',
-        'distributed': 'ส่งมอบแล้ว',
-        'completed': 'เสร็จสมบูรณ์',
-        'under_review': 'กำลังพิจารณา',
-        'approved': 'อนุมัติแล้ว',
-        'rejected': 'ไม่อนุมัติ',
-        'matching': 'กำลังหาอุปกรณ์ให้',
-        'preparing': 'เตรียมจัดส่ง',
-        'in_transit': 'กำลังจัดส่ง',
-        'delivered': 'จัดส่งแล้ว'
+        'submitted':   'ส่งคำขอ',
+        'verified':    'ตรวจสอบ',
+        'scheduled':   'นัดรับ',
+        'picked_up':   'รับอุปกรณ์',
+        'processing':  'ดำเนินการ',
+        'data_wiped':  'ลบข้อมูล',
+        'ready':       'พร้อมส่ง',
+        'distributed': 'จัดส่งสำเร็จ',
+        'completed':   'เสร็จสมบูรณ์',
+        'under_review':'กำลังพิจารณา',
+        'approved':    'อนุมัติแล้ว',
+        'rejected':    'ไม่อนุมัติ',
+        'matching':    'กำลังจับคู่',
+        'preparing':   'เตรียมจัดส่ง',
+        'in_transit':  'กำลังจัดส่ง',
+        'delivered':   'จัดส่งแล้ว'
     };
     return map[status] || status;
 }

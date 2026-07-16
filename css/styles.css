@@ -5403,6 +5403,24 @@ section {
     box-shadow: 0 8px 25px rgba(47, 82, 51, 0.3);
 }
 
+/* Confirmed item cards inside timeline step */
+.conf-item-list { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.45rem; }
+.conf-item-card {
+    display: flex; align-items: center; gap: 0.65rem;
+    background: #f8f6f3; border-radius: 8px; padding: 0.5rem 0.75rem;
+    font-size: 0.83rem;
+}
+.conf-item-num { color: #999; font-size: 0.78rem; min-width: 1.2rem; }
+.conf-item-body { flex: 1; display: flex; align-items: center; gap: 0.5rem; }
+.conf-item-badge {
+    background: #2f5233; color: #fff; border-radius: 5px;
+    padding: 0.15rem 0.45rem; font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+}
+.conf-item-detail { color: #444; }
+.conf-item-status { color: #2f5233; font-size: 0.78rem; white-space: nowrap; }
+.conf-item-status.bad { color: #c0392b; }
+.conf-item-note { font-size: 0.76rem; color: #888; font-style: italic; margin-left: 0.3rem; }
+
 /* Donor: School Receipt Confirmation Panel */
 .donor-confirm-panel {
     display: flex;
