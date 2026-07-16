@@ -1742,6 +1742,19 @@ section {
     font-size: 1.3rem;
 }
 
+.req-spec-hint {
+    margin-top: 0.45rem;
+    font-size: 0.82rem;
+    color: #5a7a5e;
+    background: rgba(47, 82, 51, 0.07);
+    border-left: 3px solid #8fbb94;
+    border-radius: 0 6px 6px 0;
+    padding: 0.35rem 0.65rem;
+    min-height: 1.5rem;
+    transition: opacity 0.2s;
+}
+.req-spec-hint:empty { display: none; }
+
 /* === MULTI-ITEM DONATION === */
 .donation-item-card {
     background: var(--white);

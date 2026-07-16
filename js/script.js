@@ -237,6 +237,33 @@ const REQ_DEVICE_SPECS = {
     ],
 };
 
+const REQ_SPEC_HINTS = {
+    'คอมพิวเตอร์': {
+        basic:    'เหมาะกับ: งานเอกสาร Word/Excel, อินเตอร์เน็ต, ดูวิดีโอ YouTube',
+        standard: 'เหมาะกับ: ออกแบบกราฟิกเบื้องต้น, เขียนโปรแกรม, ประมวลผลข้อมูล Excel ขนาดใหญ่',
+        high:     'เหมาะกับ: ตัดต่อวิดีโอ, 3D Modeling, Data Science / Machine Learning',
+        any:      'ยินดีรับทุกสเปก — ทีม GEARUP จะจัดสรรตามที่มีให้',
+    },
+    'แล็ปท็อป': {
+        basic:    'เหมาะกับ: งานเอกสาร Word/Excel, อินเตอร์เน็ต, ดูวิดีโอ YouTube',
+        standard: 'เหมาะกับ: ออกแบบกราฟิกเบื้องต้น, เขียนโปรแกรม, ประมวลผลข้อมูล Excel ขนาดใหญ่',
+        high:     'เหมาะกับ: ตัดต่อวิดีโอ, 3D Modeling, Data Science / Machine Learning',
+        any:      'ยินดีรับทุกสเปก — ทีม GEARUP จะจัดสรรตามที่มีให้',
+    },
+    'แท็บเล็ต': {
+        basic:    'เหมาะกับ: e-Learning, อ่านหนังสือ, แอปสื่อการสอนพื้นฐาน',
+        standard: 'เหมาะกับ: แอปการศึกษาทั่วไป, วิดีโอคอล, ถ่ายรูปบันทึกงาน',
+        high:     'เหมาะกับ: สร้างสื่อการสอน, บันทึกวิดีโอ, แอปที่ต้องประมวลผลสูง',
+        any:      'ยินดีรับทุกสเปก — ทีม GEARUP จะจัดสรรตามที่มีให้',
+    },
+    'โทรศัพท์มือถือ': {
+        basic:    'เหมาะกับ: สื่อสาร, e-Learning, แอปการศึกษาพื้นฐาน',
+        standard: 'เหมาะกับ: แอปการศึกษา, วิดีโอคอล, บันทึกงาน',
+        high:     'เหมาะกับ: สร้างสื่อการสอน, บันทึกวิดีโอ HD, แอปพิเศษ',
+        any:      'ยินดีรับทุกสเปก — ทีม GEARUP จะจัดสรรตามที่มีให้',
+    },
+};
+
 // === TRACKING ID GENERATION ===
 // Format: GU-{PREFIX}-DDMMYYYY-NNN  (NNN = daily sequence starting at 001)
 const TABLE_FOR_PREFIX = { DON: 'donations', REQ: 'requests', RCY: 'recycling_redirects' };
@@ -2823,7 +2850,8 @@ function renderReqDeviceSections() {
   </div>
   <div class="form-group">
     <label>สเปกขั้นต่ำที่ต้องการ :</label>
-    <select class="req-dev-spec">${specOptions}</select>
+    <select class="req-dev-spec" onchange="updateSpecHint(this)">${specOptions}</select>
+    <div class="req-spec-hint">${(() => { const h = (REQ_SPEC_HINTS[dt] || {})[s.spec || 'any']; return h ? `<span>💡</span> ${h}` : ''; })()}</div>
   </div>${osSection}
   <div class="form-group">
     <label>รายละเอียดเพิ่มเติม :</label>
@@ -2835,6 +2863,14 @@ function renderReqDeviceSections() {
   </div>
 </div>`;
     }).join('');
+}
+
+function updateSpecHint(selectEl) {
+    const sec = selectEl.closest('.req-device-section');
+    const dt = sec.dataset.deviceType;
+    const hint = (REQ_SPEC_HINTS[dt] || {})[selectEl.value] || '';
+    const hintDiv = sec.querySelector('.req-spec-hint');
+    if (hintDiv) hintDiv.innerHTML = hint ? `<span>💡</span> ${hint}` : '';
 }
 
 function updateOsBrandVersion(selectEl) {
