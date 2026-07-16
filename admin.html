@@ -42,23 +42,65 @@
       --text-muted: #8a9e94;
       --dark: #f0ece8;
       --dark-hover: rgba(0,0,0,0.2);
+      /* Lighten primary so it's readable on dark backgrounds */
+      --primary: #5db870;
+      --primary-light: #7acf8a;
     }
 
-    /* Dark mode overrides */
+    /* ── Dark mode overrides ── */
     [data-theme="dark"] .sidebar { background: linear-gradient(135deg, #0a0f0d 0%, #1a2820 100%); }
     [data-theme="dark"] .content-header { background: var(--white); border-color: var(--border); }
+    [data-theme="dark"] .content-header h1 { color: var(--text); }
+
+    /* Search */
     [data-theme="dark"] .gs-input { background: #0f1512; color: var(--text); }
     [data-theme="dark"] .global-search-wrap { background: #141e1a; border-color: var(--border); }
-    [data-theme="dark"] .data-table th { background: #141e1a; }
+    [data-theme="dark"] .gs-results { background: #1a2420; border-color: var(--border); }
+    [data-theme="dark"] .gs-item { color: var(--text); }
+    [data-theme="dark"] .gs-item:hover { background: #243028; }
+
+    /* Cards & stats */
+    [data-theme="dark"] .stat-card { background: var(--white); border-color: var(--border); }
+    [data-theme="dark"] .stat-label { color: var(--text-muted); }
+    [data-theme="dark"] .card { background: var(--white); border-color: var(--border); }
+    [data-theme="dark"] .card-header { border-color: var(--border); }
+    [data-theme="dark"] .card-title { color: var(--text); }
+
+    /* Table */
+    [data-theme="dark"] .data-table th { background: #141e1a; color: var(--text-muted); }
+    [data-theme="dark"] .data-table td { color: var(--text); border-color: var(--border); }
     [data-theme="dark"] .data-table tr:hover td { background: #1f2e28; }
-    [data-theme="dark"] .modal-box { background: #1a2420; border: 1px solid var(--border); }
+
+    /* Forms */
     [data-theme="dark"] .form-control { background: #0f1512; border-color: var(--border); color: var(--text); }
     [data-theme="dark"] .form-control:focus { background: #0f1512; }
     [data-theme="dark"] select.form-control option { background: #1a2420; }
-    [data-theme="dark"] .stat-card { background: var(--white); border-color: var(--border); }
+    [data-theme="dark"] label { color: var(--text); }
+
+    /* Modal */
+    [data-theme="dark"] .modal-box { background: #1a2420; border: 1px solid var(--border); }
+    [data-theme="dark"] .modal-header { border-color: var(--border); color: var(--text); }
+    [data-theme="dark"] .modal-footer { border-color: var(--border); }
+
+    /* Tabs & misc */
     [data-theme="dark"] .tab-btn { color: var(--text-muted); }
-    [data-theme="dark"] .tab-btn.active { color: var(--primary-light); }
-    [data-theme="dark"] .gs-results { background: #1a2420; border-color: var(--border); }
+    [data-theme="dark"] .tab-btn.active { color: var(--primary); border-color: var(--primary); }
+    [data-theme="dark"] .filter-bar .form-control { color: var(--text); }
+    [data-theme="dark"] .section-header,
+    [data-theme="dark"] .section-title { color: var(--text); }
+
+    /* Metric / KPI */
+    [data-theme="dark"] .metric-item { border-color: var(--border); }
+    [data-theme="dark"] .metric-label { color: var(--text-muted); }
+    [data-theme="dark"] .metric-value { color: var(--primary); }
+
+    /* Pending items & action lists */
+    [data-theme="dark"] .pending-item,
+    [data-theme="dark"] .action-item { background: #1f2e28; border-color: var(--border); color: var(--text); }
+
+    /* Inline text that might be hardcoded */
+    [data-theme="dark"] .text-muted { color: var(--text-muted) !important; }
+    [data-theme="dark"] p, [data-theme="dark"] span, [data-theme="dark"] div { color: inherit; }
 
     .dm-toggle {
       display: flex; align-items: center; gap: 0.4rem;
