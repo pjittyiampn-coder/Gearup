@@ -34,6 +34,42 @@
       --danger-hover: #b91c1c;
     }
 
+    [data-theme="dark"] {
+      --bg: #0f1512;
+      --white: #1a2420;
+      --border: #2a3530;
+      --text: #e8e4df;
+      --text-muted: #8a9e94;
+      --dark: #f0ece8;
+      --dark-hover: rgba(0,0,0,0.2);
+    }
+
+    /* Dark mode overrides */
+    [data-theme="dark"] .sidebar { background: linear-gradient(135deg, #0a0f0d 0%, #1a2820 100%); }
+    [data-theme="dark"] .content-header { background: var(--white); border-color: var(--border); }
+    [data-theme="dark"] .gs-input { background: #0f1512; color: var(--text); }
+    [data-theme="dark"] .global-search-wrap { background: #141e1a; border-color: var(--border); }
+    [data-theme="dark"] .data-table th { background: #141e1a; }
+    [data-theme="dark"] .data-table tr:hover td { background: #1f2e28; }
+    [data-theme="dark"] .modal-box { background: #1a2420; border: 1px solid var(--border); }
+    [data-theme="dark"] .form-control { background: #0f1512; border-color: var(--border); color: var(--text); }
+    [data-theme="dark"] .form-control:focus { background: #0f1512; }
+    [data-theme="dark"] select.form-control option { background: #1a2420; }
+    [data-theme="dark"] .stat-card { background: var(--white); border-color: var(--border); }
+    [data-theme="dark"] .tab-btn { color: var(--text-muted); }
+    [data-theme="dark"] .tab-btn.active { color: var(--primary-light); }
+    [data-theme="dark"] .gs-results { background: #1a2420; border-color: var(--border); }
+
+    .dm-toggle {
+      display: flex; align-items: center; gap: 0.4rem;
+      background: none; border: 1.5px solid var(--border);
+      border-radius: 20px; padding: 0.3rem 0.75rem;
+      cursor: pointer; font-size: 0.85rem; color: var(--text-muted);
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      white-space: nowrap;
+    }
+    .dm-toggle:hover { border-color: var(--primary); color: var(--primary); background: rgba(47,82,51,0.06); }
+
     body {
       font-family: 'Crimson Text', Georgia, serif;
       background: var(--bg);
@@ -1311,6 +1347,10 @@
             <input type="text" id="globalSearch" class="gs-input" placeholder="ค้นหา Tracking ID หรือชื่อ...">
             <div class="gs-results" id="gsResults"></div>
           </div>
+          <button class="dm-toggle" id="dmToggle" onclick="toggleDarkMode()" title="สลับธีม">
+            <span id="dmIcon">🌙</span>
+            <span id="dmLabel">Dark</span>
+          </button>
           <div class="header-date" id="headerDate"></div>
         </div>
       </header>
@@ -2334,6 +2374,25 @@
   </div>
 
   <script src="js/admin-script.js"></script>
+  <script>
+    function applyDarkMode(dark) {
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      const icon  = document.getElementById('dmIcon');
+      const label = document.getElementById('dmLabel');
+      if (icon)  icon.textContent  = dark ? '☀️' : '🌙';
+      if (label) label.textContent = dark ? 'Light' : 'Dark';
+      localStorage.setItem('adminTheme', dark ? 'dark' : 'light');
+    }
+    function toggleDarkMode() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      applyDarkMode(!isDark);
+    }
+    // Apply saved theme on load
+    (function() {
+      const saved = localStorage.getItem('adminTheme');
+      if (saved === 'dark') applyDarkMode(true);
+    })();
+  </script>
 </body>
 
 </html>
