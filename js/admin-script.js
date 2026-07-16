@@ -1303,6 +1303,14 @@ async function openDonationDetail(id) {
                     <h4>รูปภาพอุปกรณ์ (${photoUrls.length} รูป)</h4>
                     ${photosHtml}
                 </div>
+                <div class="detail-section full-width admin-notes-section">
+                    <h4>📝 หมายเหตุภายใน (Admin เท่านั้น)</h4>
+                    <textarea id="donAdminNotesText" class="form-input" rows="3"
+                        placeholder="บันทึกข้อมูลภายใน เช่น รายละเอียดการติดต่อ หมายเหตุพิเศษ..."
+                        style="width:100%;resize:vertical;margin-top:0.35rem;">${escapeHtml(data.admin_notes || '')}</textarea>
+                    <button class="btn btn-primary btn-sm" style="margin-top:0.5rem;"
+                        onclick="saveAdminNotesDonation('${id}')">💾 บันทึกหมายเหตุ</button>
+                </div>
             </div>`;
 
         // Show verify button if applicable
@@ -1535,6 +1543,14 @@ async function openRequestDetail(id) {
             <div class="detail-section full-width" style="margin-top:1rem;">
                 <h4>เอกสารและรูปภาพที่แนบมา</h4>
                 <div class="detail-doc-preview">${docHtml}</div>
+            </div>
+            <div class="detail-section full-width admin-notes-section" style="margin-top:1rem;">
+                <h4>📝 หมายเหตุภายใน (Admin เท่านั้น)</h4>
+                <textarea id="reqAdminNotesText" class="form-input" rows="3"
+                    placeholder="บันทึกข้อมูลภายใน เช่น ผลการพิจารณา รายละเอียดการติดต่อ..."
+                    style="width:100%;resize:vertical;margin-top:0.35rem;">${escapeHtml(data.admin_notes || '')}</textarea>
+                <button class="btn btn-primary btn-sm" style="margin-top:0.5rem;"
+                    onclick="saveAdminNotesRequest('${data.id}')">💾 บันทึกหมายเหตุ</button>
             </div>`;
 
         // Show approve button if not yet approved
@@ -1558,6 +1574,30 @@ function approveFromDetail() {
     if (!btn) return;
     closeModal('modalRequestDetail');
     openApproveModal(btn.dataset.id, btn.dataset.trackingId, btn.dataset.orgName);
+}
+
+async function saveAdminNotesDonation(id) {
+    const textarea = document.getElementById('donAdminNotesText');
+    if (!textarea || !supabaseClient) return;
+    try {
+        const { error } = await supabaseClient.from('donations').update({ admin_notes: textarea.value }).eq('id', id);
+        if (error) throw error;
+        showNotification('บันทึกหมายเหตุเรียบร้อยแล้ว', 'success');
+    } catch (err) {
+        showNotification('เกิดข้อผิดพลาด: ' + err.message, 'error');
+    }
+}
+
+async function saveAdminNotesRequest(id) {
+    const textarea = document.getElementById('reqAdminNotesText');
+    if (!textarea || !supabaseClient) return;
+    try {
+        const { error } = await supabaseClient.from('requests').update({ admin_notes: textarea.value }).eq('id', id);
+        if (error) throw error;
+        showNotification('บันทึกหมายเหตุเรียบร้อยแล้ว', 'success');
+    } catch (err) {
+        showNotification('เกิดข้อผิดพลาด: ' + err.message, 'error');
+    }
 }
 
 function openApproveModal(id, trackingId, orgName) {
