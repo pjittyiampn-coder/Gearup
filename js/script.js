@@ -3472,11 +3472,6 @@ function displayTrackingResult(data) {
 }
 
 async function loadDonorConfirmPanel(data) {
-    const panel = document.getElementById('donorConfirmPanel');
-    if (!panel) return;
-    panel.innerHTML = '';
-    panel.style.display = 'none';
-
     if (data.type !== 'donation') return;
     if (!['distributed', 'completed'].includes(data.current_status)) return;
     if (!data.direct_donation_to_request_id) return;
@@ -3490,20 +3485,24 @@ async function loadDonorConfirmPanel(data) {
         if (!conf || !conf.received_confirmed) return;
 
         const orgName = req?.org_name || req?.contact_name || 'ผู้รับบริจาค';
-        const confirmedDate = conf.confirmed_at ? formatThaiDate(conf.confirmed_at) : '—';
-        const confirmerName = conf.confirmed_by_name ? ` · โดย ${escapeHtml(conf.confirmed_by_name)}` : '';
-        const notesHtml = conf.notes ? `<div class="dcp-notes">"${escapeHtml(conf.notes)}"</div>` : '';
+        const confirmedDate = conf.confirmed_at ? formatThaiDateTime(conf.confirmed_at) : '—';
+        const confirmerSuffix = conf.confirmed_by_name ? ` · โดย ${escapeHtml(conf.confirmed_by_name)}` : '';
+        const noteHtml = conf.notes ? `<div class="step-note">${escapeHtml(conf.notes)}</div>` : '';
 
-        panel.style.display = 'block';
-        panel.innerHTML = `
-            <div class="donor-confirm-panel">
-                <div class="dcp-check">✅</div>
-                <div class="dcp-body">
-                    <div class="dcp-title">${escapeHtml(orgName)} ยืนยันรับอุปกรณ์แล้ว</div>
-                    <div class="dcp-meta">ยืนยันเมื่อ ${confirmedDate}${confirmerName}</div>
-                    ${notesHtml}
-                </div>
+        const stepsContainer = document.getElementById('timelineSteps');
+        if (!stepsContainer) return;
+
+        const stepDiv = document.createElement('div');
+        stepDiv.className = 'timeline-step completed';
+        stepDiv.innerHTML = `
+            <div class="step-circle">&#10003;</div>
+            <div class="step-content">
+                <div class="step-label">${escapeHtml(orgName)} ยืนยันรับแล้ว</div>
+                <div class="step-sublabel">Recipient Confirmed</div>
+                <div class="step-date">${confirmedDate}${confirmerSuffix}</div>
+                ${noteHtml}
             </div>`;
+        stepsContainer.appendChild(stepDiv);
     } catch (_) {}
 }
 
