@@ -3467,6 +3467,44 @@ function displayTrackingResult(data) {
     } else {
         confirmDiv.style.display = 'none';
     }
+
+    loadDonorConfirmPanel(data);
+}
+
+async function loadDonorConfirmPanel(data) {
+    const panel = document.getElementById('donorConfirmPanel');
+    if (!panel) return;
+    panel.innerHTML = '';
+    panel.style.display = 'none';
+
+    if (data.type !== 'donation') return;
+    if (!['distributed', 'completed'].includes(data.current_status)) return;
+    if (!data.direct_donation_to_request_id) return;
+
+    try {
+        const [{ data: conf }, { data: req }] = await Promise.all([
+            supabaseClient.from('recipient_confirmations').select('*').eq('request_id', data.direct_donation_to_request_id).maybeSingle(),
+            supabaseClient.from('requests').select('contact_name, org_name').eq('id', data.direct_donation_to_request_id).maybeSingle(),
+        ]);
+
+        if (!conf || !conf.received_confirmed) return;
+
+        const orgName = req?.org_name || req?.contact_name || 'ผู้รับบริจาค';
+        const confirmedDate = conf.confirmed_at ? formatThaiDate(conf.confirmed_at) : '—';
+        const confirmerName = conf.confirmed_by_name ? ` · โดย ${escapeHtml(conf.confirmed_by_name)}` : '';
+        const notesHtml = conf.notes ? `<div class="dcp-notes">"${escapeHtml(conf.notes)}"</div>` : '';
+
+        panel.style.display = 'block';
+        panel.innerHTML = `
+            <div class="donor-confirm-panel">
+                <div class="dcp-check">✅</div>
+                <div class="dcp-body">
+                    <div class="dcp-title">${escapeHtml(orgName)} ยืนยันรับอุปกรณ์แล้ว</div>
+                    <div class="dcp-meta">ยืนยันเมื่อ ${confirmedDate}${confirmerName}</div>
+                    ${notesHtml}
+                </div>
+            </div>`;
+    } catch (_) {}
 }
 
 // Display multiple results as a list

@@ -406,7 +406,7 @@ function populateSidebar(req) {
 
     const badge  = document.getElementById('sideStatus');
     const status = req.fulfillment_status || 'submitted';
-    badge.textContent = statusLabel(status);
+    badge.textContent = reqStatusLabel(status);
     badge.className   = 's-badge s-' + status;
 }
 
@@ -1009,6 +1009,19 @@ function statusLabel(s) {
         approved:'อนุมัติแล้ว', matching:'กำลังจับคู่', preparing:'กำลังเตรียม',
         in_transit:'กำลังจัดส่ง', delivered:'ได้รับแล้ว', completed:'เสร็จสมบูรณ์',
     })[s] || s || '—';
+}
+
+function reqStatusLabel(s) {
+    return ({
+        submitted:    'รอ GEARUP ตรวจสอบ',
+        under_review: 'อยู่ระหว่างพิจารณา',
+        approved:     'อนุมัติแล้ว — กำลังหาผู้บริจาค',
+        matching:     'จับคู่ผู้บริจาคแล้ว',
+        preparing:    'กำลังเตรียมจัดส่ง',
+        in_transit:   'อยู่ระหว่างการจัดส่ง',
+        delivered:    'จัดส่งแล้ว — กรุณายืนยันการรับ',
+        completed:    'เสร็จสมบูรณ์ ✓',
+    })[s] || statusLabel(s);
 }
 
 function carrierLabel(c) {

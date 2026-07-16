@@ -5403,6 +5403,22 @@ section {
     box-shadow: 0 8px 25px rgba(47, 82, 51, 0.3);
 }
 
+/* Donor: School Receipt Confirmation Panel */
+.donor-confirm-panel {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, #f0f9f1, #e8f5e9);
+    border: 1.5px solid #81c784;
+    border-radius: 12px;
+}
+.dcp-check { font-size: 1.8rem; flex-shrink: 0; line-height: 1; }
+.dcp-title { font-weight: 700; color: #2f5233; font-size: 0.97rem; margin-bottom: 0.25rem; }
+.dcp-meta  { font-size: 0.82rem; color: #5a7a5e; }
+.dcp-notes { margin-top: 0.4rem; font-size: 0.83rem; color: #555; font-style: italic; }
+
 /* Multiple Results */
 .track-multiple {
     margin-bottom: 2rem;
