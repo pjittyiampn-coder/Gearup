@@ -3068,8 +3068,6 @@ async function submitRequest() {
             console.warn('upsert_school_for_request failed (non-critical):', schoolErr.message);
         }
 
-        showNotification('ส่งใบสมัครเรียบร้อยแล้ว! กำลังรอการอนุมัติจาก Admin ก่อนเผยแพร่บนเว็บไซต์', 'success');
-
         // Also save to localStorage as cache
         requests.push({
             id: reqData.id, userId: currentUser.id, userName: currentUser.name,
@@ -3082,11 +3080,8 @@ async function submitRequest() {
         });
         localStorage.setItem('gearup_requests', JSON.stringify(requests));
 
-        setTimeout(() => {
-            navigateToPage('home');
-            prevReqStep(1);
-            resetRequestForm();
-        }, 2000);
+        // Show success page instead of notification
+        showReqSuccess(trackingId);
     } catch (error) {
         console.error('Request submit error:', error);
         let msg = 'ไม่สามารถส่งคำขอรับบริจาคได้ กรุณาลองใหม่อีกครั้ง';
@@ -3098,6 +3093,35 @@ async function submitRequest() {
     } finally {
         _isSubmitting = false;
     }
+}
+
+function showReqSuccess(trackingId) {
+    // Hide form steps, show success page
+    document.querySelectorAll('.request-step').forEach(el => el.style.display = 'none');
+    const page = document.getElementById('reqSuccessPage');
+    if (page) {
+        document.getElementById('reqSuccessTrackingId').textContent = trackingId || '—';
+        page.style.display = 'block';
+        page.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    resetRequestForm();
+}
+
+function closeReqSuccess() {
+    document.getElementById('reqSuccessPage').style.display = 'none';
+    document.querySelectorAll('.request-step').forEach(el => el.style.display = '');
+    prevReqStep(1);
+    navigateToPage('home');
+}
+
+function copyReqTrackingId() {
+    const id = document.getElementById('reqSuccessTrackingId')?.textContent || '';
+    if (!id || id === '—') return;
+    navigator.clipboard.writeText(id).then(() => {
+        showNotification('คัดลอกหมายเลขติดตามแล้ว', 'success');
+    }).catch(() => {
+        showNotification('ไม่สามารถคัดลอกได้ กรุณาคัดลอกเอง: ' + id, 'error');
+    });
 }
 
 function resetRequestForm() {

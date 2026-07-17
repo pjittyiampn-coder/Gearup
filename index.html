@@ -1171,6 +1171,51 @@
                         ยืนยันและส่งใบสมัคร</button>
                 </div>
             </div>
+
+            <!-- ===== REQUEST SUCCESS PAGE ===== -->
+            <div id="reqSuccessPage" style="display:none;">
+                <div class="req-success-card">
+                    <div class="req-success-icon">✅</div>
+                    <h2 class="req-success-title">ยื่นคำขอสำเร็จแล้ว!</h2>
+                    <p class="req-success-sub">ทีมงาน GEARUP ได้รับใบสมัครของคุณแล้ว</p>
+
+                    <div class="req-success-tracking">
+                        <span class="req-success-tracking-label">หมายเลขติดตาม</span>
+                        <span id="reqSuccessTrackingId" class="req-success-tracking-id">—</span>
+                        <button onclick="copyReqTrackingId()" class="req-success-copy-btn">📋 คัดลอก</button>
+                    </div>
+
+                    <div class="req-success-steps">
+                        <h3>ขั้นตอนต่อไป</h3>
+                        <div class="req-success-step">
+                            <div class="req-suc-num">1</div>
+                            <div class="req-suc-body">
+                                <strong>GEARUP ตรวจสอบเอกสาร</strong>
+                                <span>ภายใน 3–5 วันทำการ ทีมงานจะตรวจสอบความถูกต้องของข้อมูลและเอกสาร</span>
+                            </div>
+                        </div>
+                        <div class="req-success-step">
+                            <div class="req-suc-num">2</div>
+                            <div class="req-suc-body">
+                                <strong>รับผลการพิจารณาทางอีเมล</strong>
+                                <span>เราจะแจ้งผลพร้อมขั้นตอนต่อไปผ่านอีเมลที่ท่านลงทะเบียนไว้</span>
+                            </div>
+                        </div>
+                        <div class="req-success-step">
+                            <div class="req-suc-num">3</div>
+                            <div class="req-suc-body">
+                                <strong>ติดตามสถานะได้ตลอดเวลา</strong>
+                                <span>เข้าสู่พอร์ทัลด้วยอีเมลเดียวกัน เพื่อดูสถานะล่าสุดและข้อมูลการจัดส่ง</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="req-success-actions">
+                        <a href="/recipient.html" target="_blank" class="btn-primary req-suc-portal-btn">📊 ติดตามสถานะที่พอร์ทัล</a>
+                        <button onclick="closeReqSuccess()" class="btn-back req-suc-home-btn">กลับหน้าหลัก</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

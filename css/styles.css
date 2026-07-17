@@ -1619,6 +1619,56 @@ section {
     padding: var(--spacing-lg) 0;
 }
 
+/* === REQUEST SUCCESS PAGE === */
+.req-success-card {
+    max-width: 640px;
+    margin: 2rem auto;
+    background: var(--white);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    box-shadow: 0 4px 32px rgba(47,82,51,0.10);
+    border: 1.5px solid #c8deca;
+}
+.req-success-icon { font-size: 3.5rem; margin-bottom: 0.75rem; }
+.req-success-title { font-family: 'Playfair Display', serif; color: #2f5233; margin-bottom: 0.4rem; }
+.req-success-sub { color: var(--text-light); margin-bottom: 1.5rem; }
+.req-success-tracking {
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem; flex-wrap: wrap;
+    background: #f0f7f1; border-radius: 10px; padding: 0.75rem 1.2rem; margin-bottom: 1.75rem;
+}
+.req-success-tracking-label { font-size: 0.83rem; color: #5a7a5e; }
+.req-success-tracking-id {
+    font-family: monospace; font-size: 1rem; font-weight: 700; color: #2f5233; letter-spacing: 0.03em;
+}
+.req-success-copy-btn {
+    background: none; border: 1px solid #8fbb94; border-radius: 6px;
+    padding: 0.2rem 0.6rem; font-size: 0.8rem; cursor: pointer; color: #2f5233;
+}
+.req-success-copy-btn:hover { background: #e8f5e9; }
+.req-success-steps { text-align: left; margin-bottom: 1.75rem; }
+.req-success-steps h3 {
+    font-family: 'Playfair Display', serif; font-size: 1rem; color: #2f5233;
+    margin-bottom: 1rem; text-align: center;
+}
+.req-success-step {
+    display: flex; gap: 1rem; align-items: flex-start;
+    margin-bottom: 1rem; padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+.req-success-step:last-child { border-bottom: none; margin-bottom: 0; }
+.req-suc-num {
+    min-width: 2rem; height: 2rem; border-radius: 50%;
+    background: #2f5233; color: #fff; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0;
+}
+.req-suc-body { display: flex; flex-direction: column; gap: 0.2rem; }
+.req-suc-body strong { color: #1a2421; font-size: 0.95rem; }
+.req-suc-body span { color: var(--text-light); font-size: 0.88rem; line-height: 1.5; }
+.req-success-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.req-suc-portal-btn { text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+.req-suc-home-btn { border-color: #ccc; }
+
 .donate-step,
 .request-step {
     display: none;
