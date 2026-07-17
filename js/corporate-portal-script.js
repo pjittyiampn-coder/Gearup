@@ -267,7 +267,88 @@ const EVT_TYPE = {
 };
 
 // ─── Overview: upcoming events ────────────────────────────
+function renderQuickStatus() {
+    const acc       = _cpSession?.account;
+    const events    = _cpSession?.events    || [];
+    const donations = _cpSession?.donations || [];
+    const container = document.getElementById('cpQuickStatus');
+    if (!container || !acc) return;
+
+    const pkgNames = { S: 'Starter CSR', M: 'Professional ESG', L: 'Corporate Impact' };
+    const pkgName  = pkgNames[acc.package] || acc.package || '—';
+
+    // Expiry
+    let daysRemaining = null, endDateStr = '—', expiryClass = '';
+    if (acc.end_date) {
+        const diff = Math.ceil((new Date(acc.end_date) - new Date()) / (1000 * 60 * 60 * 24));
+        daysRemaining = diff;
+        endDateStr = new Date(acc.end_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+        expiryClass = diff <= 0 ? 'expired' : diff <= 30 ? 'warning' : '';
+    }
+
+    // Quota
+    const totalDevices = donations.reduce((s, d) => s + (d.total_items || 0), 0);
+    const quotaMax = acc.quota_max || 0;
+    const quotaPct = quotaMax > 0 ? Math.min(100, Math.round(totalDevices / quotaMax * 100)) : 0;
+
+    // Next event
+    const EVT_TYPE_LABEL = {
+        delivery: '📦 จัดส่งอุปกรณ์', site_visit: '🏫 ลงพื้นที่',
+        handover: '🤝 ส่งมอบจริง',   photo_session: '📸 ถ่ายรูป', other: '📋 อื่นๆ',
+    };
+    const nextEvt = events
+        .filter(e => e.status !== 'completed' && e.status !== 'cancelled' && e.scheduled_date)
+        .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))[0];
+
+    const nextEvtHtml = nextEvt
+        ? `<div class="qs-val">${EVT_TYPE_LABEL[nextEvt.event_type] || nextEvt.event_type}</div>
+           <div class="qs-sub">${new Date(nextEvt.scheduled_date).toLocaleString('th-TH', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })}</div>`
+        : `<div class="qs-val" style="color:#aaa;">ยังไม่มีกำหนด</div>
+           <div class="qs-sub">ทีมงานจะแจ้งเมื่อมีการนัดหมาย</div>`;
+
+    const expiryWarnHtml = expiryClass
+        ? `<div class="qs-expiry-warn ${expiryClass}">
+               ${expiryClass === 'expired'
+                   ? '🔴 แพ็คเกจหมดอายุแล้ว กรุณาติดต่อ GEARUP เพื่อต่ออายุ'
+                   : `⚠️ แพ็คเกจหมดอายุในอีก ${daysRemaining} วัน (${endDateStr}) — กรุณาวางแผนต่ออายุล่วงหน้า`}
+           </div>`
+        : '';
+
+    container.innerHTML = `
+        ${expiryWarnHtml}
+        <div class="qs-card">
+            <div class="qs-grid">
+                <div class="qs-item">
+                    <div class="qs-icon">🏆</div>
+                    <div class="qs-body">
+                        <div class="qs-label">แพ็คเกจปัจจุบัน</div>
+                        <div class="qs-val">${escapeHtml(pkgName)}</div>
+                        <div class="qs-sub">ถึง ${endDateStr}</div>
+                    </div>
+                </div>
+                <div class="qs-divider"></div>
+                <div class="qs-item">
+                    <div class="qs-icon">💻</div>
+                    <div class="qs-body">
+                        <div class="qs-label">อุปกรณ์ที่บริจาค</div>
+                        <div class="qs-val">${totalDevices}<span class="qs-quota"> / ${quotaMax} เครื่อง</span></div>
+                        <div class="qs-progress"><div class="qs-prog-fill" style="width:${quotaPct}%"></div></div>
+                    </div>
+                </div>
+                <div class="qs-divider"></div>
+                <div class="qs-item">
+                    <div class="qs-icon">📅</div>
+                    <div class="qs-body">
+                        <div class="qs-label">กิจกรรมถัดไป</div>
+                        ${nextEvtHtml}
+                    </div>
+                </div>
+            </div>
+        </div>`;
+}
+
 function renderOverview() {
+    renderQuickStatus();
     const events   = _cpSession?.events || [];
     const upcoming = events.filter(e => e.status !== 'completed' && e.status !== 'cancelled');
     const el       = document.getElementById('cpOverviewContent');

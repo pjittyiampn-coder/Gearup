@@ -385,6 +385,40 @@
     /* ─── Tab panes ─── */
     .cp-tab-pane { display: none; }
 
+    /* ─── Quick Status Card ─── */
+    .qs-card {
+      background: white; border-radius: 16px;
+      box-shadow: 0 2px 16px rgba(47,82,51,0.08);
+      border: 1px solid var(--border); overflow: hidden;
+    }
+    .qs-grid {
+      display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr;
+      align-items: center;
+    }
+    .qs-divider { background: var(--border); align-self: stretch; }
+    .qs-item {
+      display: flex; align-items: flex-start; gap: 0.85rem;
+      padding: 1.25rem 1.4rem;
+    }
+    .qs-icon { font-size: 1.6rem; flex-shrink: 0; line-height: 1; margin-top: 0.1rem; }
+    .qs-body { flex: 1; min-width: 0; }
+    .qs-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.25rem; }
+    .qs-val { font-size: 1rem; font-weight: 700; color: var(--primary-dk); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .qs-quota { font-size: 0.82rem; font-weight: 400; color: #888; }
+    .qs-sub { font-size: 0.8rem; color: #aaa; margin-top: 0.2rem; }
+    .qs-progress { height: 6px; background: #e8f5e9; border-radius: 99px; margin-top: 0.5rem; overflow: hidden; }
+    .qs-prog-fill { height: 100%; background: var(--primary); border-radius: 99px; transition: width 0.4s; }
+    .qs-expiry-warn {
+      padding: 0.7rem 1.2rem; border-radius: 10px; margin-bottom: 0.75rem;
+      font-size: 0.87rem; font-weight: 600;
+    }
+    .qs-expiry-warn.warning { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+    .qs-expiry-warn.expired  { background: #fde8e8; color: #c0392b; border: 1px solid #e74c3c; }
+    @media (max-width: 700px) {
+      .qs-grid { grid-template-columns: 1fr; }
+      .qs-divider { height: 1px; width: auto; }
+    }
+
     /* ═══════════════════════════════
        MOBILE RESPONSIVE
     ═══════════════════════════════ */
@@ -553,6 +587,8 @@
 
       <!-- Overview tab -->
       <div class="cp-tab-pane" data-tab-pane="overview" style="display:block;">
+        <!-- Quick Status Card -->
+        <div id="cpQuickStatus" style="margin-bottom:1.5rem;"></div>
         <div class="cp-sec-title">&#128197; กิจกรรมที่กำลังจะมา</div>
         <div id="cpOverviewContent">
           <div style="text-align:center;padding:3rem;color:#888;">กำลังโหลด...</div>
