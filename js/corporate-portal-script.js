@@ -286,8 +286,8 @@ function renderQuickStatus() {
         expiryClass = diff <= 0 ? 'expired' : diff <= 30 ? 'warning' : '';
     }
 
-    // Quota
-    const totalDevices = donations.reduce((s, d) => s + (d.total_items || 0), 0);
+    // Quota — use device_count from account (same source as Package Info tab)
+    const totalDevices = acc.device_count || 0;
     const quotaMax = acc.quota_max || 0;
     const quotaPct = quotaMax > 0 ? Math.min(100, Math.round(totalDevices / quotaMax * 100)) : 0;
 
